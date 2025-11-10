@@ -1,0 +1,7 @@
+{
+  "authorized_domains": [
+    "app.exemplo-autorizado.com",
+    "exemplo-autorizado.com",
+    "portal.outro-exemplo.com.br"
+  ]
+}

@@ -1,0 +1,11 @@
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getHealthCheck(): { status: string; message: string } {
+    return {
+      status: 'online',
+      message: 'API AntiBet (Inovexa) operacional.',
+    };
+  }
+}

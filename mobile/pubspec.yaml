@@ -1,0 +1,43 @@
+name: antibet_app
+description: Aplicativo Mobile AntiBet - Navegador com Detector de Advertorial.
+publish_to: 'none' # Impede uploads acidentais para pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Gerenciamento de Estado (Card 3/Provider)
+  provider: ^6.0.5 
+
+  # Comunicação HTTP (Cliente de API para o Backend)
+  http: ^1.1.0 
+
+  # Navegador Web (Widget principal da tela)
+  flutter_inappwebview: ^5.8.0 
+
+  # Utilidades (Para models e parsing)
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  # Ferramentas de Teste
+  flutter_test:
+    sdk: flutter
+  
+  # Mocking (para testes unitários de Service e Provider)
+  mockito: ^5.4.2
+  build_runner: ^2.4.6 # Necessário para gerar mocks com mockito
+
+  # Lints (Qualidade de Código)
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  # (Opcional: Assets ou Fonts podem ser definidos aqui futuramente)
+  # assets:
+  #   - assets/

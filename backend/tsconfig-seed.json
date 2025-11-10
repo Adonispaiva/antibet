@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "allowJs": true,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "./dist-seed" // Diretório de saída para evitar conflito com o 'dist' principal
+  },
+  "include": [
+    "src/db-seed.ts",
+    "src/**/*.entity.ts", // Incluir entidades para que o TypeORM as encontre
+    "src/config/*.ts" 
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts"
+  ]
+}

@@ -1,0 +1,51 @@
+# ==================================
+# Exclusoes de Seguranca (Secrets)
+# ==================================
+
+# Arquivo de variaveis de ambiente - CONTEM CHAVES SECRETAS (GitHub GH006)
+.env
+*.pem
+*.key
+
+# ==================================
+# Exclusoes de Ambiente Python
+# ==================================
+
+# Pastas de ambiente virtual
+venv/
+.venv/
+env/
+
+# Arquivos de cache e build
+__pycache__/
+*.pyc
+*.o
+*.so
+*.egg
+*.spec
+
+# Logs
+*.log
+
+# Banco de Dados (SQLite - se usado)
+*.sqlite3
+db.sqlite3
+
+# ==================================
+# Exclusoes de Node/Flutter
+# ==================================
+
+# NodeJS
+node_modules/
+
+# Flutter/Dart (Mobile)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.g.dart # Arquivos gerados (se houver)
+
+# Arquivos de IDEs
+.idea/
+.vscode/

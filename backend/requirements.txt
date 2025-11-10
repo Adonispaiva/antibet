@@ -1,0 +1,28 @@
+# --- Dependências de Produção ---
+
+# Servidor Web (ASGI)
+uvicorn==0.24.0.post1
+
+# Framework API
+fastapi==0.103.2
+
+# Gerenciamento de Configurações (Card 5)
+pydantic-settings==2.0.3
+
+# (Possíveis dependências futuras)
+# python-dotenv
+# python-multipart
+# sqlalchemy
+# asyncpg
+
+# --- Dependências de Desenvolvimento/Teste (DevDeps) ---
+
+# Cliente HTTP para testes (usado pelo TestClient)
+httpx==0.25.0
+
+# Ferramenta principal de testes
+pytest==7.4.2
+pytest-cov==4.1.0
+
+# Para lidar com chamadas HTTP mockadas (se necessário futuramente)
+# requests

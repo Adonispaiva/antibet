@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2020",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./", // Define a base para o mapeamento de paths
+    "paths": {
+      // Mapeia todas as importações que começam com '@/...' para o diretório 'src/...'
+      "@/*": ["src/*"], 
+      // Adiciona aliases para pastas comuns que estavam usando caminhos quebrados
+      "@/user/*": ["src/user/*"],
+      "@/auth/*": ["src/auth/*"],
+      "@/config/*": ["src/config/*"],
+      "@/ai-chat/*": ["src/ai-chat/*"],
+      "@/guards/*": ["src/guards/*"],
+      "@/interfaces/*": ["src/interfaces/*"],
+      "@/payments/*": ["src/payments/*"],
+      "@/plans/*": ["src/plans/*"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "node"
+  }
+}

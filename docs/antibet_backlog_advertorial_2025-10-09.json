@@ -1,0 +1,130 @@
+{
+  "generated_at": "2025-10-09",
+  "project": "AntiBet",
+  "topic": "Advertorial de apostas",
+  "cards": [
+    {
+      "id": "ANTIBET-20251009-001",
+      "title": "Detector de Advertorial pró-aposta",
+      "summary": "Heurística (URL/HTML/texto) para identificar advertorial; score 0-100; CLI+SDK; integração com Command Center.",
+      "products": [
+        "AntiBet",
+        "Command Center"
+      ],
+      "priority": "P1",
+      "effort": "M",
+      "impact": "High",
+      "status": "To Do",
+      "owner": "GPT-Inovexa (Leo Vinci)",
+      "reported_by": "Adonis",
+      "reported_at": "2025-10-09",
+      "next_actions": [
+        "Implementar regex de URL/labels/CTAs e marcas",
+        "Parser HTML seguro e extração de texto",
+        "Cálculo de score e explicabilidade (motivos)",
+        "CLI antibet detect <url|html> com saída JSON"
+      ],
+      "acceptance_criteria": [
+        "Recall >= 90% em amostra interna rotulada",
+        "FP <= 15% em portais legítimos",
+        "Relatório JSON com motivos e trechos",
+        "Integração com painel para ajuste de regras"
+      ],
+      "dependencies": [
+        "Lista de marcas/termos",
+        "Módulo de scraping/HTTP seguro",
+        "UI de tuning no Command Center"
+      ],
+      "tags": [
+        "apostas",
+        "advertorial",
+        "detecção",
+        "rgx",
+        "antibet",
+        "command-center"
+      ]
+    },
+    {
+      "id": "ANTIBET-20251009-002",
+      "title": "Verificador SPA (autorização de operadora)",
+      "summary": "Ingestão da lista oficial da SPA; normalização de domínios; API /spa/check para compor score e alerta.",
+      "products": [
+        "AntiBet",
+        "Command Center"
+      ],
+      "priority": "P1",
+      "effort": "M",
+      "impact": "High",
+      "status": "To Do",
+      "owner": "GPT-Inovexa (Leo Vinci)",
+      "reported_by": "Adonis",
+      "reported_at": "2025-10-09",
+      "next_actions": [
+        "Implementar job de ingestão CSV/JSON (mock inicial)",
+        "Normalizar nomes/domínios com fuzzy match",
+        "API local GET /antibet/spa/check?domain=...",
+        "UI de histórico e diffs no painel"
+      ],
+      "acceptance_criteria": [
+        "Cache atualizado em <= 24h",
+        "Acurácia de domínio >= 95% em amostra",
+        "UI com histórico de verificações e diffs",
+        "Integração no score do Detector"
+      ],
+      "dependencies": [
+        "Storage leve",
+        "Normalizador de domínios",
+        "Job scheduler"
+      ],
+      "tags": [
+        "spa",
+        "minfazenda",
+        "autorização",
+        "compliance",
+        "antibet"
+      ]
+    },
+    {
+      "id": "ANTIBET-20251009-003",
+      "title": "Rotulagem de Risco + Educação (extensão/app)",
+      "summary": "Extensão Chromium + widget mobile: badge de risco e cartão educativo (RNG/RTP, prevenção, AntiBet).",
+      "products": [
+        "AntiBet",
+        "Command Center",
+        "Clara"
+      ],
+      "priority": "P1",
+      "effort": "M",
+      "impact": "High",
+      "status": "To Do",
+      "owner": "GPT-Inovexa (Leo Vinci)",
+      "reported_by": "Adonis",
+      "reported_at": "2025-10-09",
+      "next_actions": [
+        "Criar extensão mínima (badge + popup) consumindo o Detector",
+        "Cartão educativo com texto curto e links de ajuda",
+        "Botões de Denúncia e Bloqueio de domínio/termos",
+        "Telemetria opt-in anonimizável"
+      ],
+      "acceptance_criteria": [
+        "Badge dinâmico por score",
+        "Popup acessível (atalhos/aria-labels)",
+        "Denúncia exporta pacote (URL+evidências)",
+        "Lista local de bloqueio funcionando"
+      ],
+      "dependencies": [
+        "Detector (Card 1)",
+        "Verificador SPA (Card 2)",
+        "Módulo de UI"
+      ],
+      "tags": [
+        "ux",
+        "educação",
+        "extensão",
+        "chromium",
+        "antibet",
+        "clara"
+      ]
+    }
+  ]
+}
