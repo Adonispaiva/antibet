@@ -1,88 +1,83 @@
 import 'dart:async';
-import 'dart:math';
 
-// Importação do modelo de Domínio
-import '../../core/domain/bet_strategy_model.dart';
+// Placeholder temporário para o modelo de Estratégia de Aposta
+// Este modelo deve ser definido em 'mobile/lib/domain/models/bet_strategy_model.dart' futuramente.
+class BetStrategyModel {
+  final String id;
+  final String name;
+  final String description;
+  final double successRate;
 
-/// Classe de exceção personalizada para falhas na operação de Estratégias.
-class BetStrategyException implements Exception {
-  final String message;
-  BetStrategyException(this.message);
-
-  @override
-  String toString() => 'BetStrategyException: $message';
+  BetStrategyModel({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.successRate,
+  });
+  
+  // Placeholder para desserialização
+  factory BetStrategyModel.fromJson(Map<String, dynamic> json) {
+    return BetStrategyModel(
+      id: json['id'] ?? 'strategy_default',
+      name: json['name'] ?? 'Estratégia Padrão',
+      description: json['description'] ?? 'Estratégia básica de baixo risco.',
+      successRate: json['successRate'] ?? 0.0,
+    );
+  }
 }
 
-/// O serviço de Estratégias de Apostas é responsável pelo CRUD
-/// (Create, Read, Update, Delete) das estratégias de aposta.
+// O BetStrategyService é responsável por buscar e gerenciar as estratégias de aposta
+// fornecidas pelo sistema para análise do usuário.
 class BetStrategyService {
   
-  // SIMULAÇÃO: Lista in-memory para atuar como o 'banco de dados'
-  final List<BetStrategyModel> _strategies = [
-    const BetStrategyModel(
-      id: 'strat_1',
-      name: 'Estratégia Martingale Segura',
-      description: 'Dobrar a aposta após uma perda, mas com limite de 3x.',
-      riskFactor: 0.3,
-      isActive: true,
-    ),
-    const BetStrategyModel(
-      id: 'strat_2',
-      name: 'Análise de Gols no Intervalo',
-      description: 'Focada em jogos com alta taxa de gols no primeiro tempo.',
-      riskFactor: 0.75,
-      isActive: false,
-    ),
-  ];
-
+  // Construtor
   BetStrategyService();
 
-  /// Simula a busca de todas as estratégias na API/backend.
-  Future<List<BetStrategyModel>> fetchAllStrategies() async {
+  // 1. Simulação da chamada de API para buscar a lista de estratégias disponíveis
+  Future<List<BetStrategyModel>> fetchAvailableStrategies() async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real (GET /strategies/available)
+    // -----------------------------------------------------------------
+
     // Simulação de delay de rede
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    // Simulação de erro 10% das vezes
-    if (Random().nextDouble() < 0.1) {
-      throw BetStrategyException('Falha de conexão com o servidor de estratégias.');
-    }
-    
-    return _strategies;
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    // Simulação de uma lista de estratégias
+    return [
+      BetStrategyModel(
+        id: 's-v1',
+        name: 'AntiBet Clássico',
+        description: 'Foco em análise de risco e probabilidade.',
+        successRate: 0.82,
+      ),
+      BetStrategyModel(
+        id: 's-v2',
+        name: 'Detector-Pro',
+        description: 'Estratégia de alta frequência com foco em volume.',
+        successRate: 0.75,
+      ),
+      BetStrategyModel(
+        id: 's-v3',
+        name: 'Maratona Segura',
+        description: 'Estratégia de longo prazo para crescimento lento.',
+        successRate: 0.91,
+      ),
+    ];
   }
 
-  /// Simula a gravação (Criação ou Atualização) de uma estratégia.
-  Future<BetStrategyModel> saveStrategy(BetStrategyModel strategy) async {
+  // 2. Simulação da chamada para buscar detalhes de uma estratégia específica
+  Future<BetStrategyModel?> fetchStrategyDetails(String strategyId) async {
+     // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real (GET /strategies/{id})
+    // -----------------------------------------------------------------
     await Future.delayed(const Duration(milliseconds: 300));
     
-    // --- Lógica de Criação/Atualização Simulada ---
-    if (strategy.name.isEmpty) {
-      throw BetStrategyException('O nome da estratégia não pode ser vazio.');
-    }
-    
-    final index = _strategies.indexWhere((s) => s.id == strategy.id);
-    
-    if (index == -1) {
-      // Criação (simula novo ID)
-      final newId = 'strat_${_strategies.length + 1}';
-      final newStrategy = strategy.copyWith(id: newId);
-      _strategies.add(newStrategy);
-      return newStrategy;
-    } else {
-      // Atualização
-      _strategies[index] = strategy;
-      return strategy;
-    }
-  }
-
-  /// Simula a exclusão de uma estratégia.
-  Future<void> deleteStrategy(String id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    
-    final initialLength = _strategies.length;
-    _strategies.removeWhere((s) => s.id == id);
-    
-    if (_strategies.length == initialLength) {
-       throw BetStrategyException('Estratégia com ID $id não encontrada para exclusão.');
-    }
+    // Simulação de detalhes para uma estratégia
+    return BetStrategyModel(
+      id: strategyId,
+      name: 'AntiBet Clássico',
+      description: 'Análise detalhada do fluxo de caixa e risco. Recomendado para iniciantes.',
+      successRate: 0.82,
+    );
   }
 }

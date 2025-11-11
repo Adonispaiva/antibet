@@ -1,122 +1,110 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:mobile/infra/services/auth_service.dart'; // Para UserModel
+import 'package:mobile/infra/services/user_profile_service.dart';
+import 'package:mobile/notifiers/auth_notifier.dart';
 
-// Importações dos modelos e serviços
-import '../core/domain/user_profile_model.dart'; 
-import '../core/domain/user_model.dart';
-import '../infra/services/user_profile_service.dart';
-import 'auth_notifier.dart'; // Para acessar o usuário logado
-
-/// Enum para representar os estados possíveis do Perfil.
-enum ProfileState {
-  initial, 
-  loading,
-  loaded,
-  error
-}
-
-/// O Notifier de Perfil gerencia o estado do UserProfileModel na aplicação.
-class UserProfileNotifier with ChangeNotifier {
+// O UserProfileNotifier gerencia o estado e os dados do perfil do usuário
+// e reage às mudanças de autenticação.
+class UserProfileNotifier extends ChangeNotifier {
   final UserProfileService _profileService;
-  final AuthNotifier _authNotifier; // Dependência para obter o usuário logado
+  final AuthNotifier _authNotifier;
 
-  UserProfileModel? _userProfile;
-  ProfileState _state = ProfileState.initial;
+  // Variáveis de Estado
+  UserModel? _userProfile;
+  bool _isLoading = false;
   String? _errorMessage;
 
-  UserProfileNotifier(this._profileService, this._authNotifier) {
-    // Escuta mudanças de autenticação para recarregar ou limpar o perfil
-    _authNotifier.addListener(_handleAuthChange);
+  // Construtor com injeção de dependência e listener para o AuthNotifier
+  UserProfileNotifier(
+    this._profileService,
+    this._authNotifier,
+  ) {
+    // Adiciona o listener para reagir a mudanças no AuthNotifier (login/logout)
+    _authNotifier.addListener(_onAuthChange);
   }
 
-  // Getters Públicos
-  UserProfileModel? get userProfile => _userProfile;
-  ProfileState get state => _state;
+  // Getters para acessar o estado
+  UserModel? get userProfile => _userProfile;
+  bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  void _setState(ProfileState newState) {
-    _state = newState;
-    _errorMessage = null; 
+  // Define o estado de carregamento
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 
-  void _setError(String message) {
+  // Define a mensagem de erro
+  void _setErrorMessage(String? message) {
     _errorMessage = message;
-    _state = ProfileState.error;
     notifyListeners();
   }
 
-  /// Limpa o perfil ao fazer logout.
-  void _handleAuthChange() {
-    if (!_authNotifier.isAuthenticated) {
+  // Lógica para reagir a mudanças de autenticação
+  void _onAuthChange() {
+    if (_authNotifier.isAuthenticated && _userProfile == null) {
+      // Se o usuário acabou de logar e não tem perfil carregado, carrega o perfil.
+      fetchProfile();
+    } else if (!_authNotifier.isAuthenticated) {
+      // Se o usuário fez logout, limpa o perfil.
       _userProfile = null;
-      _setState(ProfileState.initial);
-    } else {
-       // Se o usuário logou, tenta buscar o perfil imediatamente (opcional)
-       // fetchProfile();
+      _setErrorMessage(null);
+      notifyListeners();
     }
   }
 
-  /// Busca o perfil do usuário na infraestrutura.
+  // 1. Busca os dados do perfil do usuário
   Future<void> fetchProfile() async {
-    final UserModel? user = _authNotifier.currentUser;
-    if (user == null) {
-      _setError('Usuário não logado. Impossível buscar perfil.');
-      return;
-    }
-    
-    _setState(ProfileState.loading);
+    if (_isLoading || !_authNotifier.isAuthenticated) return;
+
+    _setLoading(true);
+    _setErrorMessage(null);
+
     try {
-      final profile = await _profileService.fetchProfile(user);
+      final profile = await _profileService.fetchUserProfile();
       _userProfile = profile;
-      _setState(ProfileState.loaded);
-    } on UserProfileException catch (e) {
-      _setError('Falha ao carregar perfil: ${e.message}');
     } catch (e) {
-      _setError('Erro desconhecido ao buscar perfil.');
+      _setErrorMessage('Não foi possível carregar o perfil do usuário.');
+      _userProfile = null;
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Atualiza o perfil do usuário na infraestrutura.
-  Future<void> updateProfile({
-    String? fullName,
-    String? phoneNumber,
-    DateTime? dateOfBirth,
+  // 2. Atualiza os dados do perfil do usuário
+  Future<bool> updateProfile({
+    required String name,
+    required String email,
+    // Outros campos...
   }) async {
-    if (_userProfile == null) {
-      _setError('Nenhum perfil carregado para atualização.');
-      return;
-    }
+    _setLoading(true);
+    _setErrorMessage(null);
+    bool success = false;
 
-    _setState(ProfileState.loading);
     try {
-      // Cria uma nova instância imutável com os dados atualizados
-      final updatedProfile = _userProfile!.copyWith(
-        fullName: fullName,
-        phoneNumber: phoneNumber != null ? () => phoneNumber : null,
-        dateOfBirth: dateOfBirth != null ? () => dateOfBirth : null,
+      final updatedProfile = await _profileService.updateUserProfile(
+        name: name,
+        email: email,
       );
 
-      final result = await _profileService.updateProfile(updatedProfile);
-      _userProfile = result;
-      _setState(ProfileState.loaded);
-    } on UserProfileException catch (e) {
-      _setError('Falha ao atualizar perfil: ${e.message}');
-      // Mantém o estado anterior de loaded (se houver) ou inicial
-      _state = _userProfile != null ? ProfileState.loaded : ProfileState.initial; 
-      notifyListeners();
-      rethrow; // Relança para a UI poder exibir um feedback específico
+      if (updatedProfile != null) {
+        _userProfile = updatedProfile;
+        success = true;
+      } else {
+        _setErrorMessage('Falha ao atualizar o perfil. Tente novamente.');
+      }
     } catch (e) {
-      _setError('Erro desconhecido ao atualizar perfil.');
-      _state = _userProfile != null ? ProfileState.loaded : ProfileState.initial;
-      notifyListeners();
-      rethrow;
+      _setErrorMessage('Erro de conexão ao atualizar o perfil.');
+    } finally {
+      _setLoading(false);
     }
+    return success;
   }
-  
-  // É crucial remover o listener para evitar memory leaks
+
   @override
   void dispose() {
-    _authNotifier.removeListener(_handleAuthChange);
+    // Remove o listener para evitar memory leaks
+    _authNotifier.removeListener(_onAuthChange);
     super.dispose();
   }
 }

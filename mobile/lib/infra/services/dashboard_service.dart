@@ -1,57 +1,58 @@
 import 'dart:async';
-import 'dart:math';
 
-// Importação do modelo de Domínio
-import '../../core/domain/dashboard_content_model.dart';
+// Placeholder temporário para o modelo de Dados do Dashboard
+// Este modelo deve ser definido em 'mobile/lib/domain/models/dashboard_model.dart' futuramente.
+class DashboardModel {
+  final double overallProfitPercentage;
+  final int totalAlerts;
+  final String lastStrategyUsed;
 
-/// Classe de exceção personalizada para falhas na operação de Dashboard.
-class DashboardException implements Exception {
-  final String message;
-  DashboardException(this.message);
-
-  @override
-  String toString() => 'DashboardException: $message';
+  DashboardModel({
+    required this.overallProfitPercentage,
+    required this.totalAlerts,
+    required this.lastStrategyUsed,
+  });
+  
+  // Placeholder para desserialização
+  factory DashboardModel.fromJson(Map<String, dynamic> json) {
+    return DashboardModel(
+      overallProfitPercentage: json['overallProfitPercentage'] ?? 0.0,
+      totalAlerts: json['totalAlerts'] ?? 0,
+      lastStrategyUsed: json['lastStrategyUsed'] ?? 'Nenhuma',
+    );
+  }
 }
 
-/// O serviço de Dashboard é responsável pela agregação de dados de múltiplos 
-/// serviços de backend (simulados) para construir o conteúdo principal da tela.
+// O DashboardService é responsável por buscar dados analíticos e sumarizados
+// do Backend para serem exibidos na tela inicial do usuário (Home/Dashboard).
 class DashboardService {
-
-  // Dependências futuras (ex: BalanceService, NotificationService) seriam injetadas aqui.
-
+  
+  // Construtor
   DashboardService();
 
-  /// Simula a busca e agregação do conteúdo do Dashboard na API.
-  Future<DashboardContentModel> fetchDashboardContent() async {
-    // Simulação de delay de rede para agregação de múltiplas chamadas
-    await Future.delayed(const Duration(milliseconds: 800));
+  // 1. Simulação da chamada de API para buscar o conteúdo completo do Dashboard
+  Future<DashboardModel> fetchDashboardContent() async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real (GET /dashboard/summary)
+    // -----------------------------------------------------------------
 
-    try {
-      // --- SIMULAÇÃO DE LÓGICA DE API (Agregação) ---
-      
-      // 1. Busca de métricas:
-      final int analyzedCount = Random().nextInt(1000) + 500; 
+    // Simulação de delay de rede/processamento
+    await Future.delayed(const Duration(milliseconds: 700));
 
-      // 2. Busca de saldo:
-      final double balance = (Random().nextDouble() * 10000).truncateToDouble() / 100;
-      
-      // 3. Busca de Alertas:
-      final String alert = analyzedCount > 800 
-          ? 'Análise de alta performance concluída.' 
-          : 'Requer mais 50 análises para métricas precisas.';
+    // Simulação de dados do Dashboard
+    return DashboardModel(
+      overallProfitPercentage: 8.45, // Exemplo: 8.45% de lucro geral
+      totalAlerts: 3,
+      lastStrategyUsed: 'Strategy-v2.1',
+    );
+  }
 
-      // Constrói o modelo de agregação
-      final content = DashboardContentModel(
-        totalBetsAnalyzed: analyzedCount,
-        recentActivityTitle: alert,
-        currentBalance: balance,
-      );
-      
-      return content;
-      
-    } on Exception catch (e) {
-      // Trata falhas de serviços de terceiros/infraestrutura
-      throw DashboardException('Falha na agregação de dados para o Dashboard: $e');
-    }
+  // 2. Simulação da chamada para atualizar/refrescar uma seção específica
+  Future<List<String>> fetchQuickMetrics() async {
+     // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real para métricas rápidas
+    // -----------------------------------------------------------------
+    await Future.delayed(const Duration(milliseconds: 300));
+    return ['+8.45% Lucro', '3 Alertas', '12 Vitórias'];
   }
 }

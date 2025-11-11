@@ -1,58 +1,84 @@
 import 'package:flutter/material.dart';
 
-// Importação placeholder para as telas futuras (serão criadas posteriormente)
-// import '../indices/indices_screen.dart';
-// import '../detector/detector_screen.dart';
-// import '../profile/profile_screen.dart';
+// O HomeScreen é a casca de navegação principal.
+// As telas de conteúdo serão construídas nas respectivas pastas (indices, detector, profile).
+
+// Placeholder para as telas que serão desenvolvidas nas próximas iterações
+class IndicesScreen extends StatelessWidget {
+  const IndicesScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Índices e Dashboard', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)));
+  }
+}
+
+class DetectorScreen extends StatelessWidget {
+  const DetectorScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Detector de Conteúdo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)));
+  }
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('Perfil e Configurações', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)));
+  }
+}
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  // O caminho estático para navegação.
   static const routeName = '/home';
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+// Manteremos o StatefulWidget APENAS para gerenciar o estado local do PageView/BottomNavigationBar,
+// enquanto o estado de negócio (Auth, Dados) é gerenciado pelo Notifier.
 class _HomeScreenState extends State<HomeScreen> {
-  // Índice da guia atualmente selecionada no BottomNavigationBar.
+  late PageController _pageController;
   int _selectedIndex = 0;
 
-  // Lista de Widgets que serão exibidos no corpo da tela, correspondente a cada guia.
-  // Estes são placeholders e serão substituídos pelas telas reais (IndicesScreen, etc.)
-  static const List<Widget> _widgetOptions = <Widget>[
-    // 0: Tela de Índices/Dash
-    Center(
-      child: Text('Tela de Índices e Dashboard (Em desenvolvimento)',
-          style: TextStyle(fontSize: 20)),
-    ),
-    // 1: Tela do Detector/Análise
-    Center(
-      child: Text('Tela de Detecção de Análise (Em desenvolvimento)',
-          style: TextStyle(fontSize: 20)),
-    ),
-    // 2: Tela de Perfil/Configurações
-    Center(
-      child: Text('Tela de Perfil e Configurações (Em desenvolvimento)',
-          style: TextStyle(fontSize: 20)),
-    ),
+  final List<Widget> _screens = [
+    const IndicesScreen(),
+    const DetectorScreen(),
+    const ProfileScreen(),
   ];
 
-  // Função chamada ao tocar em um item da BottomNavigationBar.
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    // Navega para a página sem animação ao tocar no item da barra
+    _pageController.jumpToPage(index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // AppBar pode ser removida se cada tela tiver a sua, mas mantemos aqui para a casca
       appBar: AppBar(
         title: const Text('AntiBet - Dashboard'),
-        automaticallyImplyLeading: false, // Não permite voltar para o Login
+        automaticallyImplyLeading: false, 
         actions: [
-          // Botão de Notificações, por exemplo
           IconButton(
             icon: const Icon(Icons.notifications_none),
             onPressed: () {
@@ -61,7 +87,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Exibe o widget da guia selecionada
+      
+      // PageView para permitir o deslizamento e a troca de telas sem reconstrução completa
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          // Atualiza o índice da barra quando o usuário desliza a tela
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: _screens,
+      ),
       
       // Barra de navegação inferior
       bottomNavigationBar: BottomNavigationBar(
@@ -71,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Índices',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.track_changes), // Ícone sugestivo para 'Detector'
+            icon: Icon(Icons.track_changes), 
             label: 'Detector',
           ),
           BottomNavigationBarItem(
@@ -79,9 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Perfil',
           ),
         ],
-        currentIndex: _selectedIndex, // Garante que o item correto esteja ativo
-        selectedItemColor: Theme.of(context).primaryColor, // Cor de destaque
-        onTap: _onItemTapped, // Função de manipulação do toque
+        currentIndex: _selectedIndex, 
+        selectedItemColor: Theme.of(context).colorScheme.primary, 
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped, 
       ),
     );
   }

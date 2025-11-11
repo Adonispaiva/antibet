@@ -1,71 +1,62 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
+// Placeholder temporário para o modelo de Configuração
+// Este modelo deve ser definido em 'mobile/lib/domain/models/app_config_model.dart' futuramente.
+class AppConfigModel {
+  final bool isDarkMode;
+  final String languageCode;
 
-// Importação do modelo de Domínio
-import '../../core/domain/app_config_model.dart';
-
-/// SIMULAÇÃO DE PERSISTÊNCIA LOCAL
-/// No projeto real, esta classe usaria um package como SharedPreferences ou Hive
-class _LocalConfigStorage {
-  // Simulação de armazenamento in-memory (Map)
-  static final Map<String, String> _storage = {};
-
-  Future<String?> read(String key) async {
-    await Future.delayed(const Duration(milliseconds: 10)); // Simula async I/O
-    return _storage[key];
-  }
-
-  Future<void> write(String key, String value) async {
-    await Future.delayed(const Duration(milliseconds: 10));
-    _storage[key] = value;
-  }
+  AppConfigModel({
+    required this.isDarkMode,
+    required this.languageCode,
+  });
   
-  // Método auxiliar para testes e garantia de isolamento
-  static void clear() => _storage.clear();
+  // Placeholder para serialização/desserialização
+  factory AppConfigModel.fromJson(Map<String, dynamic> json) {
+    return AppConfigModel(
+      isDarkMode: json['isDarkMode'] ?? false,
+      languageCode: json['languageCode'] ?? 'pt',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'isDarkMode': isDarkMode,
+      'languageCode': languageCode,
+    };
+  }
 }
 
-/// O serviço de Configurações é responsável pela persistência local
-/// da entidade AppConfigModel.
+// O AppConfigService é responsável por buscar e persistir as configurações
+// globais do aplicativo, geralmente usando SharedPreferences ou um banco de dados local.
 class AppConfigService {
-  final _LocalConfigStorage _localConfigStorage;
-  static const String _storageKey = 'appConfigData';
+  // Chave de armazenamento das configurações
+  static const String _configKey = 'app_config';
+  
+  // Construtor
+  AppConfigService();
 
-  // O construtor é ajustado para facilitar a injeção em testes
-  AppConfigService({_LocalConfigStorage? localConfigStorage}) 
-      : _localConfigStorage = localConfigStorage ?? _LocalConfigStorage();
-
-  /// Carrega as configurações salvas no dispositivo.
+  // 1. Carrega as configurações do armazenamento local
   Future<AppConfigModel> loadConfig() async {
-    try {
-      final jsonString = await _localConfigStorage.read(_storageKey);
-      
-      if (jsonString != null) {
-        final Map<String, dynamic> jsonMap = json.decode(jsonString);
-        return AppConfigModel.fromJson(jsonMap);
-      }
-      
-      // Se não houver configuração salva, retorna o padrão
-      return kDefaultAppConfig;
-      
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erro ao carregar configurações: $e');
-      }
-      // Em caso de erro de deserialização ou I/O, retorna o padrão
-      return kDefaultAppConfig;
-    }
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada real ao armazenamento local (ex: SharedPreferences)
+    // -----------------------------------------------------------------
+
+    // Simulação de delay de rede/armazenamento
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Simulação: se não houver configurações, retorna o padrão
+    return AppConfigModel(
+      isDarkMode: false, // Padrão: Tema Claro
+      languageCode: 'pt',
+    );
   }
 
-  /// Salva as configurações atualizadas no dispositivo.
-  Future<void> saveConfig(AppConfigModel config) async {
-    try {
-      final jsonString = json.encode(config.toJson());
-      await _localConfigStorage.write(_storageKey, jsonString);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erro ao salvar configurações: $e');
-      }
-      // O erro é silencioso, pois o app deve continuar funcionando
-    }
+  // 2. Salva uma nova configuração no armazenamento local
+  Future<bool> saveConfig(AppConfigModel config) async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada real para salvar a configuração
+    // -----------------------------------------------------------------
+
+    // Simulação de sucesso
+    return true;
   }
 }

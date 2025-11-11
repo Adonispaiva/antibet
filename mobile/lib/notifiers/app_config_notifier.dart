@@ -1,74 +1,92 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:mobile/infra/services/app_config_service.dart';
+import 'package:mobile/infra/services/app_config_service.dart' show AppConfigModel;
 
-// Importações dos modelos e serviços
-import '../core/domain/app_config_model.dart'; 
-import '../infra/services/app_config_service.dart';
-
-/// O Notifier de Configurações gerencia o estado global das preferências do aplicativo.
-/// Ele interage com o AppConfigService para persistência local.
-class AppConfigNotifier with ChangeNotifier {
+// O AppConfigNotifier gerencia o estado das configurações globais do aplicativo,
+// como tema (dark mode) e idioma. Ele notifica o MaterialApp.router (main.dart)
+// sobre mudanças no tema.
+class AppConfigNotifier extends ChangeNotifier {
   final AppConfigService _configService;
 
-  AppConfigModel _config = kDefaultAppConfig;
-  bool _isLoading = true;
+  // Variável de Estado
+  AppConfigModel _config = AppConfigModel(isDarkMode: false, languageCode: 'pt');
+  bool _isLoading = false;
 
+  // Construtor com injeção de dependência
   AppConfigNotifier(this._configService);
 
-  // Getters Públicos
-  AppConfigModel get config => _config;
-  bool get isLoading => _isLoading;
+  // Getters para acessar o estado
   bool get isDarkMode => _config.isDarkMode;
-  bool get areNotificationsEnabled => _config.areNotificationsEnabled;
+  bool get isLoading => _isLoading;
   String get languageCode => _config.languageCode;
 
-  /// Carrega as configurações salvas na inicialização do aplicativo.
-  Future<void> loadConfig() async {
-    _isLoading = true;
+  // Define o estado de carregamento
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
+  }
+
+  // 1. Carrega as configurações na inicialização (usado no main.dart)
+  Future<void> loadConfig() async {
+    _setLoading(true);
     try {
       _config = await _configService.loadConfig();
     } catch (e) {
-      if (kDebugMode) {
-        print('Falha ao carregar configurações salvas: $e');
-      }
-      // Em caso de falha, mantém a configuração padrão (kDefaultAppConfig)
-      _config = kDefaultAppConfig;
+      debugPrint('Erro ao carregar configurações: $e. Usando padrões.');
+      // Em caso de falha, mantém a configuração padrão
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
-  /// Atualiza uma ou mais configurações e as persiste localmente.
-  Future<void> updateConfig({
-    bool? isDarkMode,
-    bool? areNotificationsEnabled,
-    String? languageCode,
-  }) async {
-    // Cria uma nova instância imutável com os dados atualizados
-    final updatedConfig = _config.copyWith(
-      isDarkMode: isDarkMode,
-      areNotificationsEnabled: areNotificationsEnabled,
-      languageCode: languageCode,
-    );
-    
-    // Se a configuração não mudou, evita I/O desnecessário
-    if (updatedConfig == _config) {
-      return;
-    }
+  // 2. Permite que o usuário mude o modo escuro
+  Future<void> toggleDarkMode({required bool enable}) async {
+    if (_isLoading) return;
 
-    // Atualiza o estado local imediatamente para feedback instantâneo da UI
-    _config = updatedConfig;
-    notifyListeners(); 
+    _setLoading(true);
 
-    // Persiste a nova configuração no serviço
     try {
-      await _configService.saveConfig(_config);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Falha ao persistir configurações: $e');
+      // Cria uma nova instância do modelo com a mudança de estado
+      final newConfig = AppConfigModel(
+        isDarkMode: enable,
+        languageCode: _config.languageCode,
+      );
+
+      final success = await _configService.saveConfig(newConfig);
+
+      if (success) {
+        _config = newConfig;
+        // Notifica o MaterialApp.router (main.dart) para mudar o tema
+      } else {
+        debugPrint('Falha ao salvar a configuração no serviço.');
       }
-      // O erro de salvamento é silencioso, mas é logado.
+    } catch (e) {
+      debugPrint('Erro ao salvar ou mudar tema: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
+  
+  // 3. Atualiza o código do idioma (lógica similar a toggleDarkMode)
+  Future<void> updateLanguage(String newCode) async {
+    if (_isLoading) return;
+    
+    _setLoading(true);
+    
+    try {
+      final newConfig = AppConfigModel(
+        isDarkMode: _config.isDarkMode,
+        languageCode: newCode,
+      );
+      final success = await _configService.saveConfig(newConfig);
+      
+      if (success) {
+        _config = newConfig;
+      }
+    } catch (e) {
+      debugPrint('Erro ao atualizar idioma: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 }

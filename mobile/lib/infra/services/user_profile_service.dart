@@ -1,76 +1,61 @@
-import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:mobile/infra/services/auth_service.dart'; // Reutiliza o UserModel
 
-// Importação do modelo de Domínio
-import '../../core/domain/user_profile_model.dart';
-import '../../core/domain/user_model.dart'; // Necessário para linkar o perfil ao usuário logado
-
-/// Classe de exceção personalizada para falhas na operação de Perfil.
-class UserProfileException implements Exception {
-  final String message;
-  UserProfileException(this.message);
-
-  @override
-  String toString() => 'UserProfileException: $message';
-}
-
-/// O serviço de Perfil é responsável pela comunicação com a API (simulada) para 
-/// buscar e atualizar os dados do usuário.
+// O UserProfileService é responsável por buscar e persistir os dados do perfil do usuário
+// no Backend (Infraestrutura).
 class UserProfileService {
-  // Simulação de cache ou persistência local do perfil
-  UserProfileModel? _cachedProfile; 
-
-  // Dependência do AuthService seria injetada aqui para obter o ID do usuário,
-  // mas faremos a simulação direta por enquanto.
-
+  
+  // Construtor
   UserProfileService();
 
-  /// Simula a busca do perfil na API.
-  Future<UserProfileModel> fetchProfile(UserModel user) async {
+  // 1. Simulação da chamada de API para buscar o perfil completo do usuário
+  Future<UserModel?> fetchUserProfile() async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real (GET /profile)
+    // -----------------------------------------------------------------
+    
     // Simulação de delay de rede
     await Future.delayed(const Duration(milliseconds: 500));
 
-    if (user.id == 'guest') {
-       throw UserProfileException('Usuário convidado não possui perfil detalhado.');
-    }
-    
-    if (_cachedProfile != null && _cachedProfile!.userId == user.id) {
-      // Retorna o cache se o ID for o mesmo
-      return _cachedProfile!;
-    }
-    
-    // --- SIMULAÇÃO DE LÓGICA DE API (Busca) ---
-    try {
-      // Cria um perfil fictício baseado no usuário logado
-      final fetchedProfile = UserProfileModel(
-        userId: user.id,
-        fullName: 'Orion Software Engineer',
-        phoneNumber: '11987654321',
-        dateOfBirth: DateTime(1990, 1, 1),
-      );
-      _cachedProfile = fetchedProfile;
-      return fetchedProfile;
-      
-    } catch (e) {
-      throw UserProfileException('Falha ao buscar o perfil na infraestrutura.');
-    }
+    // Simulação de dados do usuário logado (usando dados mock)
+    return UserModel(
+      id: 'user_123',
+      name: 'Adonis Paiva',
+      email: 'teste@inovexa.com',
+      // Outros campos do perfil (ex: phone, avatarUrl, settings) seriam inclusos aqui
+    );
   }
 
-  /// Simula a atualização do perfil na API.
-  Future<UserProfileModel> updateProfile(UserProfileModel profile) async {
+  // 2. Simulação da chamada de API para atualizar o perfil do usuário
+  Future<UserModel?> updateUserProfile({
+    required String name,
+    required String email,
+    // Outros parâmetros...
+  }) async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real (PUT /profile)
+    // -----------------------------------------------------------------
+
     // Simulação de delay de rede
     await Future.delayed(const Duration(milliseconds: 500));
-
-    // --- SIMULAÇÃO DE LÓGICA DE API (Atualização) ---
-    if (profile.fullName.isEmpty) {
-      throw UserProfileException('O nome completo não pode estar vazio.');
-    }
     
-    if (profile.userId == '123') { // Simulação de sucesso
-      _cachedProfile = profile;
-      return profile;
-    } else {
-      throw UserProfileException('Erro desconhecido ao salvar o perfil.');
-    }
+    // Simulação de sucesso (retorna o novo modelo)
+    return UserModel(
+      id: 'user_123',
+      name: name,
+      email: email,
+    );
+  }
+
+  // 3. Simulação da chamada de API para mudança de senha (separado do update de perfil)
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real para mudança de senha
+    // -----------------------------------------------------------------
+    
+    // Simulação de sucesso
+    return true;
   }
 }

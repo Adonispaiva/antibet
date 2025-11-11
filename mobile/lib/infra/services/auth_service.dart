@@ -1,65 +1,117 @@
-import 'package:antibet_mobile/core/domain/user_model.dart';
-import 'package:antibet_mobile/infra/services/storage_service.dart';
+import 'package:mobile/infra/services/storage_service.dart';
 
-/// Uma classe de exceção personalizada para falhas de autenticação.
-class AuthException implements Exception {
-  final String message;
-  AuthException(this.message);
+// Placeholder temporário para o modelo de Usuário
+// Este modelo deve ser definido em 'mobile/lib/domain/models/user_model.dart' futuramente.
+class UserModel {
+  final String id;
+  final String name;
+  final String email;
+  final String? token;
 
-  @override
-  String toString() => 'AuthException: $message';
+  UserModel({required this.id, required this.name, required this.email, this.token});
+
+  // Método placeholder para simular a criação de um usuário a partir da resposta da API
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] ?? 'default_id',
+      name: json['name'] ?? 'Nome Usuário',
+      email: json['email'] ?? 'usuario@antibet.com',
+      token: json['token'],
+    );
+  }
 }
 
-/// O serviço de autenticação é responsável pela comunicação com a API (simulada) e
-/// pela orquestração com o StorageService para persistência segura do token.
+// O AuthService é responsável pela comunicação com a API de Autenticação
+// e pela persistência do token de sessão.
 class AuthService {
+  // Chave de armazenamento do token (constante de segurança)
+  static const String _authTokenKey = 'auth_token';
+  
+  // O StorageService é injetado, seguindo o padrão da Arquitetura Limpa.
   final StorageService _storageService;
-
-  // A chave para o token de autenticação, mantida no serviço de infraestrutura.
-  static const String _authKey = 'authToken'; 
 
   AuthService(this._storageService);
 
-  /// Simula uma chamada de login à API, persistindo o token em caso de sucesso.
-  Future<UserModel> login(String email, String password) async {
-    // --- SIMULAÇÃO DE LÓGICA DE API ---
-    if (email == 'user@inovexa.com.br' && password == 'inovexa123') {
-      // Token fictício simulando resposta da API
-      const token = 'xyz789_mock_jwt_token_for_inovexa_user'; 
-      await _storageService.writeToken(_authKey, token);
+  // === Métodos de Persistência de Token ===
+
+  // Salva o token de autenticação no armazenamento local seguro
+  Future<void> saveToken(String token) async {
+    await _storageService.save(key: _authTokenKey, value: token);
+  }
+
+  // Recupera o token de autenticação do armazenamento local
+  Future<String?> getToken() async {
+    return await _storageService.read(key: _authTokenKey);
+  }
+
+  // Remove o token de autenticação
+  Future<void> deleteToken() async {
+    await _storageService.delete(key: _authTokenKey);
+  }
+
+  // === Métodos de Comunicação com a API (Futuro) ===
+
+  // Simulação da chamada de API para Login
+  Future<UserModel?> login({
+    required String email, 
+    required String password,
+  }) async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real para o Backend
+    // -----------------------------------------------------------------
+
+    // Simulação de Sucesso/Falha
+    if (email == 'teste@inovexa.com' && password == 'inovexa123') {
+      // Simulação de Token (Token de teste real deve ser retornado pelo Backend)
+      const testToken = 'sk_test_token_antibet_abc123';
+      await saveToken(testToken);
       
-      // Retorna o modelo do usuário (idealmente, deserializado da resposta da API)
-      return const UserModel(id: '123', email: email);
+      // Retorna o modelo do usuário com o token
+      return UserModel(
+        id: 'user_123', 
+        name: 'Adonis', 
+        email: email, 
+        token: testToken,
+      );
     } else {
-      throw AuthException('Credenciais inválidas. Por favor, tente novamente.');
+      // Simulação de credenciais inválidas
+      return null;
     }
   }
 
-  /// Simula uma chamada de registro à API.
-  /// No mundo real, registraria o usuário e possivelmente retornaria um token.
-  Future<UserModel> register(String email, String password) async {
-    // --- SIMULAÇÃO DE LÓGICA DE API ---
-    if (email.contains('fail')) { // Regra de falha simulada
-      throw AuthException('Email já está em uso ou inválido.');
+  // Simulação da chamada de API para Cadastro
+  Future<UserModel?> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real para o Backend
+    // -----------------------------------------------------------------
+
+    // Simulação de Sucesso/Falha
+    if (email.contains('@') && password.length >= 6) {
+      // Após o registro, normalmente o Backend retorna o token de sessão.
+      const testToken = 'sk_test_token_antibet_def456';
+      await saveToken(testToken);
+      
+      return UserModel(
+        id: 'user_456', 
+        name: name, 
+        email: email, 
+        token: testToken,
+      );
+    } else {
+      // Simulação de falha de validação ou e-mail já em uso
+      return null;
     }
-    
-    // Simula sucesso de registro.
-    // Em muitos sistemas, o registro bem-sucedido resulta em login automático.
-    const token = 'abc456_mock_jwt_token_for_new_user';
-    await _storageService.writeToken(_authKey, token);
-
-    // Retorna o modelo do novo usuário
-    return UserModel(id: UniqueKey().toString(), email: email);
   }
 
-  /// Verifica se um token de autenticação está armazenado de forma segura.
-  Future<bool> isTokenStored() async {
-    final token = await _storageService.readToken(_authKey);
-    return token != null;
-  }
-
-  /// Remove o token do armazenamento seguro, realizando o logout.
+  // Simulação da chamada de API para Logout
   Future<void> logout() async {
-    await _storageService.deleteToken(_authKey);
+    // -----------------------------------------------------------------
+    // TODO: Implementar a chamada HTTP real para o Backend (Invalidar Token)
+    // -----------------------------------------------------------------
+    await deleteToken();
   }
 }
