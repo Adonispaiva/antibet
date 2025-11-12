@@ -1,98 +1,77 @@
+import 'package:antibet_mobile/models/strategy_model.dart';
+import 'package:antibet_mobile/screens/add_bet_journal_entry_screen.dart'; // Importação Adicionada
+import 'package:antibet_mobile/screens/notifications_screen.dart';
+import 'package:antibet_mobile/screens/profile_screen.dart';
+import 'package:antibet_mobile/screens/registration/register_screen.dart';
+import 'package:antibet_mobile/screens/settings_screen.dart';
+import 'package:antibet_mobile/screens/strategy_detail_screen.dart';
+import 'package:antibet_mobile/ui/screens/home_screen.dart';
+import 'package:antibet_mobile/ui/screens/login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-// Importações dos Notifiers e Telas necessárias
-import 'package:mobile/notifiers/auth_notifier.dart';
-import 'package:mobile/notifiers/lockdown_notifier.dart';
-import 'package:mobile/screens/login/login_screen.dart';
-import 'package:mobile/screens/registration/register_screen.dart'; // Usando a pasta 'registration'
-import 'package:mobile/screens/home/home_screen.dart';
-// Importação placeholder para a tela de Lockdown
-// import 'package:mobile/screens/lockdown/lockdown_screen.dart'; 
-
-// O AppRouter é responsável por definir e gerenciar o fluxo de navegação
-// reativo da aplicação (padrão de Arquitetura Limpa/Provider-based).
+/// Gerenciador central de rotas (Navegação) para o aplicativo.
 class AppRouter {
-  final AuthNotifier _authNotifier;
-  final LockdownNotifier _lockdownNotifier;
-  
-  // Rota estática para a tela de Lockdown (se necessário)
-  static const String lockdownRoute = '/lockdown';
+  // --- Constantes de Rotas ---
+  static const String homeRoute = '/';
+  static const String loginRoute = '/login';
+  static const String registerRoute = '/register';
+  static const String strategyDetailRoute = '/strategy-detail';
+  static const String profileRoute = '/profile';
+  static const String settingsRoute = '/settings';
+  static const String notificationsRoute = '/notifications';
+  static const String addBetJournalEntryRoute = '/journal/add'; // Rota Adicionada
 
-  AppRouter(this._authNotifier, this._lockdownNotifier);
+  /// Gera as rotas com base no [RouteSettings] (nome da rota e argumentos).
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case homeRoute:
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
+      
+      case loginRoute:
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
+      
+      case registerRoute:
+        // (Ajustando o caminho conforme a sua observação)
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
 
-  // O GoRouter é instanciado aqui
-  late final GoRouter router = GoRouter(
-    // A chave Listenable é usada para que o router se reconstrua
-    // sempre que o estado de autenticação ou bloqueio mude.
-    refreshListenable: Listenable.merge([_authNotifier, _lockdownNotifier]),
-    
-    // Rota inicial ou de fallback
-    initialLocation: LoginScreen.routeName, 
-    
-    // Lista das rotas da aplicação
-    routes: [
-      // 1. Rotas de Autenticação
-      GoRoute(
-        path: LoginScreen.routeName,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: RegisterScreen.routeName,
-        builder: (context, state) => const RegisterScreen(),
-      ),
+      case strategyDetailRoute:
+        // Extrai os argumentos. Espera-se um StrategyModel.
+        final args = settings.arguments;
+        if (args is StrategyModel) {
+          return MaterialPageRoute(
+            builder: (_) => StrategyDetailScreen(strategy: args),
+          );
+        }
+        // Fallback em caso de erro na passagem de argumentos
+        return _errorRoute('Argumento StrategyModel inválido ou ausente.');
 
-      // 2. Rotas Principais (App Flow)
-      GoRoute(
-        path: HomeScreen.routeName,
-        builder: (context, state) => const HomeScreen(),
-      ),
+      case profileRoute:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
 
-      // 3. Rota de Lockdown (Simulada)
-      GoRoute(
-        path: lockdownRoute,
-        // builder: (context, state) => const LockdownScreen(),
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('🔒 BLOQUEADO: Manutenção Crítica de Sistema', 
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, color: Colors.red))),
+      case settingsRoute:
+        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        
+      case notificationsRoute:
+        return MaterialPageRoute(builder: (_) => const NotificationsScreen());
+
+      case addBetJournalEntryRoute: // Rota Adicionada
+        return MaterialPageRoute(builder: (_) => const AddBetJournalEntryScreen());
+
+      default:
+        // Rota não encontrada
+        return _errorRoute('Rota não encontrada: ${settings.name}');
+    }
+  }
+
+  /// Rota de fallback em caso de erro de navegação.
+  static Route<dynamic> _errorRoute(String message) {
+    return MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Erro de Navegação')),
+        body: Center(
+          child: Text(message),
         ),
       ),
-    ],
-
-    // === LÓGICA DE REDIRECIONAMENTO REATIVO ===
-    // Chamado sempre que a localização muda ou quando o refreshListenable notifica.
-    redirect: (context, state) {
-      // 1. CHECAGEM DE LOCKDOWN (Prioridade Máxima)
-      // Se o sistema estiver em Lockdown, redireciona para a tela de Lockdown, independentemente do estado de autenticação.
-      if (_lockdownNotifier.isSystemLocked) {
-        // Permite o acesso à rota de Lockdown (para evitar loops infinitos)
-        return (state.fullPath == lockdownRoute) ? null : lockdownRoute;
-      }
-      
-      // Se o Lockdown não estiver ativo, remove qualquer tentativa de ir para a rota de Lockdown
-      if (state.fullPath == lockdownRoute) {
-        // Redireciona para o login se não autenticado, ou para a home se autenticado
-        return _authNotifier.isAuthenticated ? HomeScreen.routeName : LoginScreen.routeName;
-      }
-
-      // 2. CHECAGEM DE AUTENTICAÇÃO
-      final bool isAuthenticated = _authNotifier.isAuthenticated;
-      final bool isGoingToAuth = state.fullPath == LoginScreen.routeName || state.fullPath == RegisterScreen.routeName;
-
-      // Se o usuário está autenticado E tentando acessar Login/Register, redireciona para a Home.
-      if (isAuthenticated && isGoingToAuth) {
-        return HomeScreen.routeName;
-      }
-      
-      // Se o usuário NÃO está autenticado E tentando acessar a Home (ou qualquer rota protegida), redireciona para o Login.
-      if (!isAuthenticated && !isGoingToAuth) {
-        return LoginScreen.routeName;
-      }
-
-      // Se não houver necessidade de redirecionamento, permite a navegação.
-      return null;
-    },
-  );
+    );
+  }
 }

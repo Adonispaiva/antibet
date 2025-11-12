@@ -1,67 +1,56 @@
+import 'package:antibet_mobile/infra/services/dashboard_service.dart';
+import 'package:antibet_mobile/models/dashboard_summary_model.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/infra/services/dashboard_service.dart';
-import 'package:mobile/infra/services/dashboard_service.dart' show DashboardModel;
 
-// O DashboardNotifier gerencia o estado e os dados exibidos no Dashboard/Home
-// do usuário.
-class DashboardNotifier extends ChangeNotifier {
+/// Gerencia o estado dos dados de resumo do Dashboard.
+///
+/// Este Notifier utiliza o [DashboardService] para buscar e manipular
+/// os dados consolidados, expondo-os para a UI através do Provider.
+class DashboardNotifier with ChangeNotifier {
   final DashboardService _dashboardService;
 
-  // Variáveis de Estado
-  DashboardModel? _dashboardData;
   bool _isLoading = false;
+  DashboardSummaryModel _summary = DashboardSummaryModel.empty(); // Tipado e inicializado
   String? _errorMessage;
 
   // Construtor com injeção de dependência
   DashboardNotifier(this._dashboardService);
 
-  // Getters para acessar o estado
-  DashboardModel? get dashboardData => _dashboardData;
+  // Getters para expor o estado
   bool get isLoading => _isLoading;
+  DashboardSummaryModel get summary => _summary;
   String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null;
 
-  // Define o estado de carregamento
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-
-  // Define a mensagem de erro
-  void _setErrorMessage(String? message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-  
-  // 1. Busca o conteúdo completo do dashboard
-  Future<void> fetchDashboardContent() async {
-    if (_isLoading) return;
-
-    _setLoading(true);
-    _setErrorMessage(null);
+  /// Carrega os dados de resumo do dashboard.
+  Future<void> loadSummary() async {
+    _setStateLoading(true);
 
     try {
-      final data = await _dashboardService.fetchDashboardContent();
-      _dashboardData = data;
+      // Chama o serviço (que agora retorna Future<DashboardSummaryModel>)
+      _summary = await _dashboardService.getDashboardSummary();
+      _errorMessage = null;
+
     } catch (e) {
-      _setErrorMessage('Não foi possível carregar os dados do Dashboard. Tente novamente.');
-      _dashboardData = null;
+      // TODO: Implementar logging de erro robusto.
+      debugPrint('[DashboardNotifier] Erro ao carregar resumo: $e');
+      _errorMessage = 'Falha ao carregar dados do dashboard.';
+      _summary = DashboardSummaryModel.empty(); // Limpa dados em caso de erro
     } finally {
-      _setLoading(false);
+      _setStateLoading(false);
     }
   }
 
-  // 2. Simulação de um refresh de dados (que pode ser acionado via pull-to-refresh)
-  Future<void> refreshData() async {
-    // Apenas faz o fetch novamente sem mostrar o loading global, para uma UX melhor.
-    _setErrorMessage(null);
-    try {
-      final data = await _dashboardService.fetchDashboardContent();
-      _dashboardData = data;
-    } catch (e) {
-      _setErrorMessage('Falha ao atualizar os dados.');
-    } finally {
-      // Notifica Widgets que dependem dos dados
-      notifyListeners(); 
+  // --- Métodos de controle de estado ---
+
+  /// Controla o estado de carregamento e notifica os ouvintes.
+  void _setStateLoading(bool loading) {
+    if (_isLoading != loading) {
+      _isLoading = loading;
+      notifyListeners();
+    } else {
+      // Notifica mesmo que o loading não mude (ex: erro ou sucesso)
+      notifyListeners();
     }
   }
 }

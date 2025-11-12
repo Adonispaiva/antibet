@@ -1,110 +1,87 @@
+import 'package:antibet_mobile/infra/services/user_profile_service.dart';
+import 'package:antibet_mobile/models/user_model.dart';
+import 'package:antibet_mobile/notifiers/auth_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/infra/services/auth_service.dart'; // Para UserModel
-import 'package:mobile/infra/services/user_profile_service.dart';
-import 'package:mobile/notifiers/auth_notifier.dart';
 
-// O UserProfileNotifier gerencia o estado e os dados do perfil do usuário
-// e reage às mudanças de autenticação.
-class UserProfileNotifier extends ChangeNotifier {
+/// Gerencia o estado do perfil do usuário (dados detalhados).
+///
+/// Este Notifier depende do [AuthNotifier] para obter o usuário
+/// autenticado inicial e usa [UserProfileService] para atualizar
+/// os dados do perfil no backend.
+class UserProfileNotifier with ChangeNotifier {
   final UserProfileService _profileService;
-  final AuthNotifier _authNotifier;
+  final AuthNotifier _authNotifier; // Dependência para sincronia
 
-  // Variáveis de Estado
-  UserModel? _userProfile;
+  UserModel? _user;
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Construtor com injeção de dependência e listener para o AuthNotifier
-  UserProfileNotifier(
-    this._profileService,
-    this._authNotifier,
-  ) {
-    // Adiciona o listener para reagir a mudanças no AuthNotifier (login/logout)
-    _authNotifier.addListener(_onAuthChange);
+  // Construtor com injeção de dependência
+  UserProfileNotifier(this._profileService, this._authNotifier) {
+    // Sincroniza o usuário do AuthNotifier
+    _user = _authNotifier.user;
   }
 
-  // Getters para acessar o estado
-  UserModel? get userProfile => _userProfile;
+  // Getters públicos
+  UserModel? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Define o estado de carregamento
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-
-  // Define a mensagem de erro
-  void _setErrorMessage(String? message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  // Lógica para reagir a mudanças de autenticação
-  void _onAuthChange() {
-    if (_authNotifier.isAuthenticated && _userProfile == null) {
-      // Se o usuário acabou de logar e não tem perfil carregado, carrega o perfil.
-      fetchProfile();
-    } else if (!_authNotifier.isAuthenticated) {
-      // Se o usuário fez logout, limpa o perfil.
-      _userProfile = null;
-      _setErrorMessage(null);
+  /// Atualiza o [UserModel] interno com base no [AuthNotifier].
+  /// Este método é chamado pelo ChangeNotifierProxyProvider no main.dart.
+  void updateUserFromAuth(AuthNotifier authNotifier) {
+    if (_user != authNotifier.user) {
+      _user = authNotifier.user;
+      
+      // Se o usuário mudou (ex: login/logout), limpa estados de erro/loading
+      _isLoading = false;
+      _errorMessage = null;
       notifyListeners();
     }
   }
 
-  // 1. Busca os dados do perfil do usuário
+  /// Carrega (ou recarrega) os dados do perfil do serviço.
+  /// Útil se o perfil tiver mais dados que o objeto de login.
   Future<void> fetchProfile() async {
-    if (_isLoading || !_authNotifier.isAuthenticated) return;
-
-    _setLoading(true);
-    _setErrorMessage(null);
-
+    _setStateLoading(true);
     try {
-      final profile = await _profileService.fetchUserProfile();
-      _userProfile = profile;
+      final updatedUser = await _profileService.getUserProfile();
+      _user = updatedUser;
+      
+      // Opcional: Notificar o AuthNotifier se o objeto dele estiver defasado
+      // (Depende da regra de negócio)
+
     } catch (e) {
-      _setErrorMessage('Não foi possível carregar o perfil do usuário.');
-      _userProfile = null;
+      debugPrint('[UserProfileNotifier] Erro ao buscar perfil: $e');
+      _errorMessage = 'Falha ao buscar dados do perfil.';
     } finally {
-      _setLoading(false);
+      _setStateLoading(false);
     }
   }
 
-  // 2. Atualiza os dados do perfil do usuário
-  Future<bool> updateProfile({
-    required String name,
-    required String email,
-    // Outros campos...
-  }) async {
-    _setLoading(true);
-    _setErrorMessage(null);
-    bool success = false;
-
+  /// Tenta atualizar o perfil do usuário no backend.
+  Future<bool> updateProfile(UserModel userToUpdate) async {
+    _setStateLoading(true);
     try {
-      final updatedProfile = await _profileService.updateUserProfile(
-        name: name,
-        email: email,
-      );
+      final updatedUser = await _profileService.updateUserProfile(userToUpdate);
+      _user = updatedUser;
+      
+      // Opcional: Sincronizar com AuthNotifier (se necessário)
 
-      if (updatedProfile != null) {
-        _userProfile = updatedProfile;
-        success = true;
-      } else {
-        _setErrorMessage('Falha ao atualizar o perfil. Tente novamente.');
-      }
+      _setStateLoading(false);
+      return true;
     } catch (e) {
-      _setErrorMessage('Erro de conexão ao atualizar o perfil.');
-    } finally {
-      _setLoading(false);
+      debugPrint('[UserProfileNotifier] Erro ao atualizar perfil: $e');
+      _errorMessage = 'Falha ao salvar dados.';
+      _setStateLoading(false);
+      return false;
     }
-    return success;
   }
 
-  @override
-  void dispose() {
-    // Remove o listener para evitar memory leaks
-    _authNotifier.removeListener(_onAuthChange);
-    super.dispose();
+  /// Helper interno para gerenciar o estado e notificar ouvintes.
+  void _setStateLoading(bool loading) {
+    _isLoading = loading;
+    _errorMessage = null; // Limpa erros ao iniciar nova ação
+    notifyListeners();
   }
 }

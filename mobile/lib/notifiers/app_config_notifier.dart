@@ -1,92 +1,64 @@
+import 'package:antibet_mobile/infra/services/app_config_service.dart';
+import 'package:antibet_mobile/infra/services/storage_service.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/infra/services/app_config_service.dart';
-import 'package:mobile/infra/services/app_config_service.dart' show AppConfigModel;
 
-// O AppConfigNotifier gerencia o estado das configurações globais do aplicativo,
-// como tema (dark mode) e idioma. Ele notifica o MaterialApp.router (main.dart)
-// sobre mudanças no tema.
-class AppConfigNotifier extends ChangeNotifier {
+/// Chave de armazenamento para o tema escuro.
+const String _kDarkModeKey = 'pref_dark_mode';
+
+/// Gerencia o estado das configurações globais do aplicativo.
+///
+/// Utiliza o [StorageService] para persistir as preferências do usuário.
+class AppConfigNotifier with ChangeNotifier {
   final AppConfigService _configService;
+  final StorageService _storageService; // Nova dependência para persistência
 
-  // Variável de Estado
-  AppConfigModel _config = AppConfigModel(isDarkMode: false, languageCode: 'pt');
-  bool _isLoading = false;
+  bool _isDarkModeEnabled = true; // Valor padrão: Dark Mode ativado
 
   // Construtor com injeção de dependência
-  AppConfigNotifier(this._configService);
-
-  // Getters para acessar o estado
-  bool get isDarkMode => _config.isDarkMode;
-  bool get isLoading => _isLoading;
-  String get languageCode => _config.languageCode;
-
-  // Define o estado de carregamento
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
+  AppConfigNotifier(this._configService, this._storageService) {
+    // Carrega a configuração no momento da criação da instância
+    loadConfig();
   }
 
-  // 1. Carrega as configurações na inicialização (usado no main.dart)
+  // Getter público para o estado do Dark Mode
+  bool get isDarkModeEnabled => _isDarkModeEnabled;
+
+  /// Carrega as configurações persistidas do [StorageService].
   Future<void> loadConfig() async {
-    _setLoading(true);
     try {
-      _config = await _configService.loadConfig();
-    } catch (e) {
-      debugPrint('Erro ao carregar configurações: $e. Usando padrões.');
-      // Em caso de falha, mantém a configuração padrão
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // 2. Permite que o usuário mude o modo escuro
-  Future<void> toggleDarkMode({required bool enable}) async {
-    if (_isLoading) return;
-
-    _setLoading(true);
-
-    try {
-      // Cria uma nova instância do modelo com a mudança de estado
-      final newConfig = AppConfigModel(
-        isDarkMode: enable,
-        languageCode: _config.languageCode,
-      );
-
-      final success = await _configService.saveConfig(newConfig);
-
-      if (success) {
-        _config = newConfig;
-        // Notifica o MaterialApp.router (main.dart) para mudar o tema
-      } else {
-        debugPrint('Falha ao salvar a configuração no serviço.');
-      }
-    } catch (e) {
-      debugPrint('Erro ao salvar ou mudar tema: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-  
-  // 3. Atualiza o código do idioma (lógica similar a toggleDarkMode)
-  Future<void> updateLanguage(String newCode) async {
-    if (_isLoading) return;
-    
-    _setLoading(true);
-    
-    try {
-      final newConfig = AppConfigModel(
-        isDarkMode: _config.isDarkMode,
-        languageCode: newCode,
-      );
-      final success = await _configService.saveConfig(newConfig);
+      final storedValue = await _storageService.read(_kDarkModeKey);
       
-      if (success) {
-        _config = newConfig;
+      // Se não houver valor salvo, usa o padrão (true).
+      // Se houver, converte a string salva ('true' ou 'false') para bool.
+      if (storedValue != null) {
+        _isDarkModeEnabled = storedValue == 'true';
+      } else {
+        // Garantir que o valor padrão seja salvo na primeira execução
+        _storageService.write(_kDarkModeKey, _isDarkModeEnabled.toString());
       }
     } catch (e) {
-      debugPrint('Erro ao atualizar idioma: $e');
+      debugPrint('[AppConfigNotifier] Erro ao carregar configurações: $e');
+      // Em caso de falha de I/O, mantém o valor padrão.
     } finally {
-      _setLoading(false);
+      notifyListeners();
     }
   }
+
+  /// Alterna o estado do Dark Mode e persiste a mudança.
+  Future<void> toggleDarkMode(bool newValue) async {
+    if (_isDarkModeEnabled != newValue) {
+      _isDarkModeEnabled = newValue;
+      notifyListeners();
+      
+      try {
+        // Persiste a nova configuração
+        await _storageService.write(_kDarkModeKey, newValue.toString());
+      } catch (e) {
+        debugPrint('[AppConfigNotifier] Erro ao salvar Dark Mode: $e');
+        // Adicionar tratamento para reverter se o save falhar, se necessário
+      }
+    }
+  }
+
+  // Outras configurações (ex: notificações) virão aqui.
 }

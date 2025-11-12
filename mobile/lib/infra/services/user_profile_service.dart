@@ -1,61 +1,76 @@
-import 'package:mobile/infra/services/auth_service.dart'; // Reutiliza o UserModel
+import 'package:antibet_mobile/models/user_model.dart';
+import 'package:flutter/material.dart';
+// Opcional: pode precisar do StorageService se o ID do usuário não for passado
+// import 'package:antibet_mobile/infra/services/storage_service.dart';
 
-// O UserProfileService é responsável por buscar e persistir os dados do perfil do usuário
-// no Backend (Infraestrutura).
+/// Camada de Serviço de Infraestrutura para o Perfil do Usuário.
+///
+/// Responsável pela lógica de negócios e comunicação com a API (Backend)
+/// referente aos dados do perfil do usuário (leitura e atualização).
 class UserProfileService {
-  
-  // Construtor
-  UserProfileService();
+  // Simulação de dependência de um cliente HTTP (ex: Dio, Http)
+  // final ApiClient _apiClient;
+  // final StorageService _storageService;
 
-  // 1. Simulação da chamada de API para buscar o perfil completo do usuário
-  Future<UserModel?> fetchUserProfile() async {
-    // -----------------------------------------------------------------
-    // TODO: Implementar a chamada HTTP real (GET /profile)
-    // -----------------------------------------------------------------
-    
-    // Simulação de delay de rede
-    await Future.delayed(const Duration(milliseconds: 500));
+  // UserProfileService(this._apiClient, this._storageService);
 
-    // Simulação de dados do usuário logado (usando dados mock)
-    return UserModel(
-      id: 'user_123',
-      name: 'Adonis Paiva',
-      email: 'teste@inovexa.com',
-      // Outros campos do perfil (ex: phone, avatarUrl, settings) seriam inclusos aqui
-    );
+  UserProfileService() {
+    // Construtor vazio por enquanto
   }
 
-  // 2. Simulação da chamada de API para atualizar o perfil do usuário
-  Future<UserModel?> updateUserProfile({
-    required String name,
-    required String email,
-    // Outros parâmetros...
-  }) async {
-    // -----------------------------------------------------------------
-    // TODO: Implementar a chamada HTTP real (PUT /profile)
-    // -----------------------------------------------------------------
+  /// Busca os dados completos do perfil do usuário logado.
+  /// Presume-se que a API use o token (enviado pelo ApiClient) para identificar o usuário.
+  Future<UserModel> getUserProfile() async {
+    try {
+      // 1. Simulação de chamada de rede (API call)
+      debugPrint('[UserProfileService] Buscando perfil do usuário...');
+      await Future.delayed(const Duration(milliseconds: 600));
 
-    // Simulação de delay de rede
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    // Simulação de sucesso (retorna o novo modelo)
-    return UserModel(
-      id: 'user_123',
-      name: name,
-      email: email,
-    );
+      // 2. Simulação de resposta da API (JSON)
+      // (Em um caso real, o AuthService.login pode não retornar todos os dados)
+      final mockApiResponse = {
+        'id': 'user_uuid_001',
+        'email': 'adonis@inovexa.com',
+        'name': 'Adonis Paiva (Dados Completos)',
+        'createdAt': '2025-11-01T10:00:00Z'
+        // 'subscriptionStatus': 'active',
+        // 'avatarUrl': '...'
+      };
+
+      // 3. Parsear e retornar o UserModel
+      final user = UserModel.fromJson(mockApiResponse);
+      debugPrint('[UserProfileService] Perfil recebido: ${user.name}');
+      return user;
+
+    } catch (e) {
+      debugPrint('[UserProfileService] Erro ao buscar perfil: $e');
+      throw Exception('Falha ao carregar dados do perfil.');
+    }
   }
 
-  // 3. Simulação da chamada de API para mudança de senha (separado do update de perfil)
-  Future<bool> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    // -----------------------------------------------------------------
-    // TODO: Implementar a chamada HTTP real para mudança de senha
-    // -----------------------------------------------------------------
-    
-    // Simulação de sucesso
-    return true;
+  /// Atualiza os dados do perfil do usuário.
+  /// Retorna o [UserModel] atualizado.
+  Future<UserModel> updateUserProfile(UserModel userToUpdate) async {
+    try {
+      // 1. Serializar os dados para enviar à API
+      final Map<String, dynamic> requestBody = userToUpdate.toJson();
+
+      // 2. Simulação de chamada de rede (API call - PUT/PATCH)
+      debugPrint('[UserProfileService] Atualizando perfil: $requestBody');
+      await Future.delayed(const Duration(milliseconds: 750));
+
+      // 3. Simulação de resposta da API (retorna o objeto atualizado)
+      final mockApiResponse = requestBody; 
+      // A API normalmente confirmaria os dados ou adicionaria campos (ex: updatedAt)
+      
+      // 4. Parsear e retornar o UserModel atualizado
+      final updatedUser = UserModel.fromJson(mockApiResponse);
+      debugPrint('[UserProfileService] Perfil atualizado com sucesso.');
+      return updatedUser;
+
+    } catch (e) {
+      debugPrint('[UserProfileService] Erro ao atualizar perfil: $e');
+      throw Exception('Falha ao salvar dados do perfil.');
+    }
   }
 }

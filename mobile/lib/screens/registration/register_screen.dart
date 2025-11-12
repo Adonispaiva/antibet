@@ -1,181 +1,154 @@
+import 'package:antibet_mobile/notifiers/auth_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:mobile/notifiers/auth_notifier.dart';
-// Importação para navegação
-// import 'package:go_router/go_router.dart';
-
+/// Tela de Registro de Novo Usuário.
+///
+/// Esta tela é 'Stateless' e consome o [AuthNotifier] para
+/// gerenciar o estado de registro, exibindo feedback (loading/erro)
+/// e tratando a submissão do formulário.
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
-  // O caminho estático para navegação.
-  static const String routeName = '/register';
+  // Controladores para os campos de texto e chave do formulário
+  static final _nameController = TextEditingController();
+  static final _emailController = TextEditingController();
+  static final _passwordController = TextEditingController();
+  static final _formKey = GlobalKey<FormState>();
+
+  /// Função de callback para tentar o registro.
+  /// Usamos 'context.read' aqui pois estamos disparando uma *ação*.
+  void _onRegisterPressed(BuildContext context) async {
+    // 1. Valida o formulário
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    // 2. Chama a *ação* no Notifier
+    final authNotifier = context.read<AuthNotifier>();
+    await authNotifier.register(
+      _nameController.text,
+      _emailController.text,
+      _passwordController.text,
+    );
+
+    // 3. O 'home' no main.dart (Consumer) tratará a navegação
+    // para a HomeScreen se o registro for bem-sucedido.
+    // Se falhar, o 'watch' abaixo exibirá a mensagem de erro.
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Chave global para o formulário.
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-    // Controladores para os campos de texto.
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmPasswordController = TextEditingController();
-
-    // Watcher no AuthNotifier para gerenciar o estado (loading, erros)
-    final authNotifier = context.watch<AuthNotifier>();
-
-    // Função de submissão integrada com o Notifier
-    void submitRegistration() async {
-      if (formKey.currentState?.validate() ?? false) {
-        // Esconde qualquer SnackBar anterior
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-        // Implementação da chamada ao AuthNotifier.register no futuro
-        // await authNotifier.register(
-        //   name: nameController.text.trim(),
-        //   email: emailController.text.trim(),
-        //   password: passwordController.text,
-        // );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tentativa de Cadastro em progresso...')),
-        );
-        
-        // Simulação do log para teste
-        debugPrint('Nome: ${nameController.text}');
-        debugPrint('Email: ${emailController.text}');
-      }
-    }
+    // Usamos 'context.watch' para *observar* mudanças de estado.
+    final authStatus = context.watch<AuthNotifier>().status;
+    final errorMessage = context.watch<AuthNotifier>().errorMessage;
+    final isLoading = authStatus == AuthStatus.loading;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AntiBet - Cadastro'),
+        title: const Text('Criar Conta'),
+        centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(24.0),
           child: Form(
-            key: formKey,
+            key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                // Título
-                const Text(
-                  'Crie sua conta AntiBet',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E88E5),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 40),
+              children: [
+                const Icon(Icons.person_add_alt_1_outlined, size: 80),
+                const SizedBox(height: 24),
 
-                // Campo de Nome
+                // --- Campo de Nome ---
                 TextFormField(
-                  controller: nameController,
-                  keyboardType: TextInputType.text,
+                  controller: _nameController,
+                  keyboardType: TextInputType.name,
                   decoration: const InputDecoration(
                     labelText: 'Nome Completo',
-                    prefixIcon: Icon(Icons.person),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'O nome é obrigatório.';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      (value == null || value.trim().length < 3)
+                          ? 'Nome deve ter no mínimo 3 caracteres.'
+                          : null,
+                  enabled: !isLoading,
                 ),
-                const SizedBox(height: 20),
-                
-                // Campo de E-mail
+                const SizedBox(height: 16),
+
+                // --- Campo de Email ---
                 TextFormField(
-                  controller: emailController,
+                  controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'E-mail',
-                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'O e-mail é obrigatório.';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Por favor, insira um e-mail válido.';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                      (value == null || !value.contains('@'))
+                          ? 'Por favor, insira um e-mail válido.'
+                          : null,
+                  enabled: !isLoading,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Campo de Senha
+                // --- Campo de Senha ---
                 TextFormField(
-                  controller: passwordController,
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Senha',
-                    prefixIcon: Icon(Icons.lock),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock_outline),
                   ),
-                  validator: (value) {
-                    if (value == null || value.length < 6) {
-                      return 'A senha deve ter pelo menos 6 caracteres.';
-                    }
-                    return null;
-                  },
+                  validator: (value) => (value == null || value.length < 4)
+                      ? 'Senha deve ter no mínimo 4 caracteres.'
+                      : null,
+                  enabled: !isLoading,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-                // Campo de Confirmação de Senha
-                TextFormField(
-                  controller: confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirmar Senha',
-                    prefixIcon: Icon(Icons.lock_reset),
+                // --- Feedback de Erro ---
+                if (errorMessage != null && !isLoading)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      errorMessage, // Ex: "E-mail já cadastrado."
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Confirme sua senha.';
-                    }
-                    if (value != passwordController.text) {
-                      return 'As senhas não coincidem.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
 
-                // Botão de Cadastro
-                ElevatedButton(
-                  // Desabilita o botão se já estiver em loading
-                  onPressed: authNotifier.isLoading ? null : submitRegistration,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    textStyle: const TextStyle(fontSize: 18),
-                  ),
-                  child: authNotifier.isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.0,
+                // --- Botão de Registro ---
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    child: isLoading
+                        ? const CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          )
+                        : const Text(
+                            'CRIAR CONTA',
+                            style: TextStyle(fontSize: 18),
                           ),
-                        )
-                      : const Text('Cadastrar'),
+                    onPressed:
+                        isLoading ? null : () => _onRegisterPressed(context),
+                  ),
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
-
-                // Opção para retornar ao Login
+                // --- Botão de Voltar (Login) ---
                 TextButton(
-                  onPressed: () {
-                    // Navegação será implementada pelo AppRouter para voltar ao Login
-                    Navigator.of(context).pop(); 
-                  },
-                  child: const Text('Já tenho uma conta. Voltar ao Login.'),
+                  child: const Text('Já tem conta? Fazer Login'),
+                  onPressed:
+                      isLoading ? null : () => Navigator.of(context).pop(),
                 ),
               ],
             ),

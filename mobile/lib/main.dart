@@ -1,156 +1,205 @@
+import 'package:antibet_mobile/core/navigation/app_router.dart';
+import 'package:antibet_mobile/infra/services/app_config_service.dart';
+import 'package:antibet_mobile/infra/services/auth_service.dart';
+import 'package:antibet_mobile/infra/services/bet_journal_service.dart';
+import 'package:antibet_mobile/infra/services/bet_strategy_service.dart';
+import 'package:antibet_mobile/infra/services/dashboard_service.dart';
+import 'package:antibet_mobile/infra/services/financial_metrics_service.dart';
+import 'package:antibet_mobile/infra/services/push_notification_service.dart';
+import 'package:antibet_mobile/infra/services/strategy_recommendation_service.dart'; // Importação Adicionada
+import 'package:antibet_mobile/infra/services/storage_service.dart';
+import 'package:antibet_mobile/infra/services/user_profile_service.dart';
+import 'package:antibet_mobile/notifiers/app_config_notifier.dart';
+import 'package:antibet_mobile/notifiers/auth_notifier.dart';
+import 'package:antibet_mobile/notifiers/bet_journal_notifier.dart';
+import 'package:antibet_mobile/notifiers/bet_strategy_notifier.dart';
+import 'package:antibet_mobile/notifiers/dashboard_notifier.dart';
+import 'package:antibet_mobile/notifiers/financial_metrics_notifier.dart';
+import 'package:antibet_mobile/notifiers/push_notification_notifier.dart';
+import 'package:antibet_mobile/notifiers/strategy_recommendation_notifier.dart'; // Importação Adicionada
+import 'package:antibet_mobile/notifiers/user_profile_notifier.dart';
+import 'package:antibet_mobile/ui/screens/home_screen.dart';
+import 'package:antibet_mobile/ui/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http; // Novo: Para o cliente HTTP do Detector
-
-// Importações das camadas de Arquitetura
-import 'core/navigation/app_router.dart';
-import 'infra/services/storage_service.dart';
-import 'infra/services/auth_service.dart';
-import 'infra/services/user_profile_service.dart';
-import 'infra/services/app_config_service.dart';
-import 'infra/services/dashboard_service.dart'; 
-import 'infra/services/bet_strategy_service.dart';
-import 'infra/services/help_and_alerts_service.dart';
-import 'infra/services/lockdown_service.dart';
-import 'infra/services/behavioral_analytics_service.dart'; 
-import 'infra/services/advertorial_detector_service.dart'; // NOVO: Serviço de Detecção
-
-import 'notifiers/auth_notifier.dart';
-import 'notifiers/user_profile_notifier.dart';
-import 'notifiers/app_config_notifier.dart';
-import 'notifiers/dashboard_notifier.dart';
-import 'notifiers/bet_strategy_notifier.dart';
-import 'notifiers/help_and_alerts_notifier.dart';
-import 'notifiers/lockdown_notifier.dart';
-import 'notifiers/behavioral_analytics_notifier.dart'; 
-import 'notifiers/advertorial_detector_notifier.dart'; // NOVO: Notifier do Detector (Card 3)
-
 
 void main() async {
-  // Garante que o Flutter esteja inicializado antes de acessar plugins
   WidgetsFlutterBinding.ensureInitialized();
   
-  // URL Base para o Backend (IMPORTANTE: Mude esta URL em Produção)
-  const String advertorialBaseUrl = 'http://localhost:8000/api/v1'; 
+  // O StorageService (SecureStorage) pode precisar ser inicializado
+  // Se for assíncrono, faremos aqui.
+  // await StorageService.init(); // Exemplo
 
-  // 1. Inicialização do StorageService (base de segurança)
-  final StorageService storageService = StorageService(); 
-  
-  // 2. Inicialização dos Services de Infraestrutura
-  final AuthService authService = AuthService(storageService);
-  final UserProfileService userProfileService = UserProfileService();
-  final AppConfigService appConfigService = AppConfigService();
-  final DashboardService dashboardService = DashboardService();
-  final BetStrategyService betStrategyService = BetStrategyService();
-  final HelpAndAlertsService helpAndAlertsService = HelpAndAlertsService();
-  final LockdownService lockdownService = LockdownService();
-  final BehavioralAnalyticsService behavioralAnalyticsService = BehavioralAnalyticsService(); 
-  
-  // NOVO: Serviço do Detector de Advertorial (Injetando o cliente HTTP)
-  final AdvertorialDetectorService advertorialDetectorService = AdvertorialDetectorService(
-    baseUrl: advertorialBaseUrl,
-    httpClient: http.Client(),
-  );
-
-  // 3. Inicialização dos Notifiers (Estado)
-  final AuthNotifier authNotifier = AuthNotifier(authService);
-  final AppConfigNotifier appConfigNotifier = AppConfigNotifier(appConfigService); 
-  final DashboardNotifier dashboardNotifier = DashboardNotifier(dashboardService);
-  final BetStrategyNotifier betStrategyNotifier = BetStrategyNotifier(betStrategyService);
-  final HelpAndAlertsNotifier helpAndAlertsNotifier = HelpAndAlertsNotifier(helpAndAlertsService);
-  final LockdownNotifier lockdownNotifier = LockdownNotifier(lockdownService);
-  final BehavioralAnalyticsNotifier behavioralAnalyticsNotifier = BehavioralAnalyticsNotifier(behavioralAnalyticsService); 
-  
-  // NOVO: Notifier do Detector (Injetando o serviço)
-  final AdvertorialDetectorNotifier advertorialDetectorNotifier = AdvertorialDetectorNotifier(
-    detectorService: advertorialDetectorService,
-  );
-
-  // 4. Injeção de Dependência Cruzada (Late-Binding) para Analytics
-  authNotifier.setAnalyticsNotifier(behavioralAnalyticsNotifier);
-  lockdownNotifier.setAnalyticsNotifier(behavioralAnalyticsNotifier);
-
-  // 5. Carregamento Assíncrono na Inicialização (Prioridade)
-  await Future.wait([
-    authNotifier.checkAuthenticationStatus(), 
-    appConfigNotifier.loadConfig(), 
-    dashboardNotifier.fetchDashboardContent(), 
-    helpAndAlertsNotifier.fetchResources(),
-    lockdownNotifier.checkLockdownStatus(), 
-    behavioralAnalyticsNotifier.calculateAnalytics(), 
-  ]);
-
-  // 6. Inicialização dos Notifiers Dependentes
-  final UserProfileNotifier userProfileNotifier = UserProfileNotifier(
-    userProfileService,
-    authNotifier, 
-  );
-  
-  // 7. Inicialização do AppRouter
-  final AppRouter appRouter = AppRouter(authNotifier, lockdownNotifier); 
-  
-  runApp(
-    // Usa MultiProvider para injetar múltiplos Notifiers
-    MultiProvider(
-      providers: [
-        // Notifiers independentes
-        ChangeNotifierProvider<AuthNotifier>.value(value: authNotifier),
-        ChangeNotifierProvider<AppConfigNotifier>.value(value: appConfigNotifier),
-        ChangeNotifierProvider<DashboardNotifier>.value(value: dashboardNotifier),
-        ChangeNotifierProvider<BetStrategyNotifier>.value(value: betStrategyNotifier),
-        ChangeNotifierProvider<HelpAndAlertsNotifier>.value(value: helpAndAlertsNotifier),
-        ChangeNotifierProvider<LockdownNotifier>.value(value: lockdownNotifier),
-        ChangeNotifierProvider<BehavioralAnalyticsNotifier>.value(value: behavioralAnalyticsNotifier),
-        
-        // NOVO: Notifier do Detector (Card 3)
-        ChangeNotifierProvider<AdvertorialDetectorNotifier>.value(value: advertorialDetectorNotifier),
-
-        // Services para o caso de consumo direto por um Widget/Service
-        Provider<AdvertorialDetectorService>.value(value: advertorialDetectorService),
-        
-        // Notifiers dependentes
-        ChangeNotifierProvider<UserProfileNotifier>.value(value: userProfileNotifier),
-      ],
-      child: AntiBetMobileApp(appRouter: appRouter),
-    ),
-  );
+  runApp(const AntiBetApp());
 }
 
-class AntiBetMobileApp extends StatelessWidget {
-  final AppRouter appRouter;
-  
-  const AntiBetMobileApp({super.key, required this.appRouter});
+/// Ponto de entrada principal e Single Source of Truth (SSOT) da arquitetura.
+///
+/// Define a injeção de dependência (Provider) para todos os Serviços
+/// e Notifiers (ViewModels) da aplicação.
+class AntiBetApp extends StatelessWidget {
+  const AntiBetApp({super.key});
+
+  // 1. Define o tema Escuro (Dark Mode)
+  ThemeData get _darkTheme => ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+          // Definir cores específicas do Dark Mode
+          primary: Colors.deepPurpleAccent,
+          secondary: Colors.tealAccent,
+        ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        // Outras configurações de Dark Mode aqui
+      );
+
+  // 2. Define o tema Claro (Light Mode)
+  ThemeData get _lightTheme => ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+          // Definir cores específicas do Light Mode
+          primary: Colors.deepPurple,
+          secondary: Colors.teal,
+        ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        // Outras configurações de Light Mode aqui
+      );
 
   @override
   Widget build(BuildContext context) {
-    // Escuta o AppConfigNotifier para reagir a mudanças no tema
-    final configNotifier = context.watch<AppConfigNotifier>();
-
-    return MaterialApp.router(
-      title: 'AntiBet Mobile',
-      
-      // Define o modo de tema baseado na configuração do usuário
-      themeMode: configNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-
-      // Tema Claro Padrão
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
-      ),
-      
-      // Tema Escuro (Dark Theme)
-      darkTheme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.dark,
-        // Configurações básicas do tema escuro para contraste
-        scaffoldBackgroundColor: Colors.grey[900],
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[850],
+    return MultiProvider(
+      // --- PROVEDORES (INJEÇÃO DE DEPENDÊNCIA) ---
+      providers: [
+        // 1. SERVIÇOS (INFRAESTRUTURA)
+        // (Singleton - Camada mais baixa, sem dependências)
+        Provider<StorageService>(create: (_) => StorageService()),
+        
+        // (Serviços que dependem de outros serviços)
+        ProxyProvider<StorageService, AuthService>(
+          update: (_, storage, __) => AuthService(storage),
         ),
-      ),
+        Provider<UserProfileService>(create: (_) => UserProfileService()),
+        Provider<AppConfigService>(create: (_) => AppConfigService()),
+        Provider<DashboardService>(create: (_) => DashboardService()),
+        Provider<BetStrategyService>(create: (_) => BetStrategyService()),
+        Provider<PushNotificationService>(create: (_) => PushNotificationService()), 
+        Provider<BetJournalService>(create: (_) => BetJournalService()), 
+        Provider<FinancialMetricsService>(create: (_) => FinancialMetricsService()), 
+        Provider<StrategyRecommendationService>(create: (_) => StrategyRecommendationService()), // Adicionado
 
-      // Configuração do Router
-      routerConfig: appRouter.router,
+        // 2. NOTIFIERS (GERENCIAMENTO DE ESTADO / VIEWMODELS)
+        // (AppConfigProxy: Injeta StorageService)
+        ChangeNotifierProxyProvider<StorageService, AppConfigNotifier>(
+          create: (context) => AppConfigNotifier(
+            context.read<AppConfigService>(),
+            context.read<StorageService>(),
+          ),
+          update: (context, storage, notifier) => AppConfigNotifier(
+            context.read<AppConfigService>(),
+            storage,
+          ),
+        ),
+
+        // (AuthNotifier: Injeta AuthService)
+        ChangeNotifierProvider<AuthNotifier>(
+          create: (context) => AuthNotifier(
+            context.read<AuthService>(),
+          ),
+        ),
+        ChangeNotifierProvider<DashboardNotifier>(
+          create: (context) => DashboardNotifier(
+            context.read<DashboardService>(),
+          ),
+        ),
+        ChangeNotifierProvider<BetStrategyNotifier>(
+          create: (context) => BetStrategyNotifier(
+            context.read<BetStrategyService>(),
+          ),
+        ),
+        ChangeNotifierProvider<PushNotificationNotifier>( 
+          create: (context) => PushNotificationNotifier(
+            context.read<PushNotificationService>(),
+          ),
+        ),
+        ChangeNotifierProvider<BetJournalNotifier>( 
+          create: (context) => BetJournalNotifier(
+            context.read<BetJournalService>(),
+          ),
+        ),
+        
+        // (Proxy Notifier: FinancialMetrics depende de BetJournal)
+        ChangeNotifierProxyProvider<BetJournalNotifier, FinancialMetricsNotifier>(
+          create: (context) => FinancialMetricsNotifier(
+            context.read<FinancialMetricsService>(),
+          ),
+          update: (context, betJournalNotifier, financialMetricsNotifier) {
+            financialMetricsNotifier!.loadMetrics();
+            return financialMetricsNotifier;
+          },
+        ),
+        
+        // (Proxy Notifier: StrategyRecommendation depende de BetJournal)
+        ChangeNotifierProxyProvider<BetJournalNotifier, StrategyRecommendationNotifier>( // Adicionado
+          create: (context) => StrategyRecommendationNotifier(
+            context.read<StrategyRecommendationService>(),
+          ),
+          update: (context, betJournalNotifier, recommendationNotifier) {
+            // A recomendação é acionada sempre que o histórico muda
+            recommendationNotifier!.loadRecommendation();
+            return recommendationNotifier;
+          },
+        ),
+
+        // (Proxy Notifier: UserProfile depende de Auth)
+        ChangeNotifierProxyProvider<AuthNotifier, UserProfileNotifier>(
+          create: (context) => UserProfileNotifier(
+            context.read<UserProfileService>(),
+            context.read<AuthNotifier>(),
+          ),
+          update: (context, authNotifier, userProfileNotifier) {
+            userProfileNotifier!.updateUserFromAuth(authNotifier);
+            return userProfileNotifier;
+          },
+        ),
+      ],
+      // --- FIM DOS PROVEDORES ---
+      
+      // *** WRAPPER DO CONSUMER PARA TEMA DINÂMICO ***
+      child: Consumer<AppConfigNotifier>(
+        builder: (context, appConfig, _) {
+          return MaterialApp(
+            title: 'AntiBet',
+            // Define o tema com base no estado do Notifier
+            themeMode: appConfig.isDarkModeEnabled ? ThemeMode.dark : ThemeMode.light,
+            theme: _lightTheme,
+            darkTheme: _darkTheme,
+            
+            // Define a visualização de acordo com o estado de autenticação
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            home: Consumer<AuthNotifier>(
+              builder: (context, auth, _) {
+                switch (auth.status) {
+                  case AuthStatus.authenticated:
+                    return const HomeScreen(); //
+                  case AuthStatus.unauthenticated:
+                    return const LoginScreen(); //
+                  case AuthStatus.uninitialized:
+                  case AuthStatus.loading:
+                  default:
+                    // Tela de Splash/Loading elegante
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                }
+              },
+            ),
+          );
+        },
+      ),
+      // *** FIM DO WRAPPER DO CONSUMER ***
     );
   }
 }

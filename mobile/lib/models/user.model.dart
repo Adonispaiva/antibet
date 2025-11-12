@@ -1,28 +1,60 @@
-/// Modelo de Dados do Usuário (UserModel)
+/// Representa o modelo de dados de um Usuário no sistema AntiBet.
 ///
-/// Estrutura de dados imutável para representar um usuário autenticado.
-/// Localizado na pasta `models` para garantir a separação de responsabilidades.
+/// Esta classe é usada para deserializar (fromJson) os dados vindos da API
+/// e serializar (toJson) dados para enviar ao backend.
 class UserModel {
   final String id;
   final String email;
-  // Adicionar outros dados de usuário (nome, foto, escore de risco, etc.)
-  // que são relevantes para a interface e o sistema.
-  const UserModel({required this.id, required this.email});
-  
-  // Método opcional para facilitar a visualização em logs
-  @override
-  String toString() {
-    return 'UserModel(id: $id, email: $email)';
+  final String? name; // O nome pode ser opcional dependendo do fluxo de registro
+  final DateTime? createdAt;
+  // Outros campos relevantes (ex: subscriptionStatus, avatarUrl) podem ser adicionados aqui.
+
+  UserModel({
+    required this.id,
+    required this.email,
+    this.name,
+    this.createdAt,
+  });
+
+  /// Construtor de fábrica para criar uma instância de [UserModel] a partir de um Map (JSON).
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      name: json['name'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String)
+          : null,
+    );
   }
 
-  // Método opcional para criar uma cópia modificada
+  /// Converte a instância de [UserModel] em um Map (JSON).
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'createdAt': createdAt?.toIso8601String(),
+    };
+  }
+
+  /// Cria uma cópia do [UserModel] com campos atualizados (imutabilidade).
   UserModel copyWith({
     String? id,
     String? email,
+    String? name,
+    DateTime? createdAt,
   }) {
     return UserModel(
       id: id ?? this.id,
       email: email ?? this.email,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  @override
+  String toString() {
+    return 'UserModel(id: $id, email: $email, name: $name)';
   }
 }

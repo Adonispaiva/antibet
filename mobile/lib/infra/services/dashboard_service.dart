@@ -1,58 +1,48 @@
-import 'dart:async';
+import 'package:antibet_mobile/models/dashboard_summary_model.dart';
+import 'package:flutter/material.dart';
 
-// Placeholder temporário para o modelo de Dados do Dashboard
-// Este modelo deve ser definido em 'mobile/lib/domain/models/dashboard_model.dart' futuramente.
-class DashboardModel {
-  final double overallProfitPercentage;
-  final int totalAlerts;
-  final String lastStrategyUsed;
-
-  DashboardModel({
-    required this.overallProfitPercentage,
-    required this.totalAlerts,
-    required this.lastStrategyUsed,
-  });
-  
-  // Placeholder para desserialização
-  factory DashboardModel.fromJson(Map<String, dynamic> json) {
-    return DashboardModel(
-      overallProfitPercentage: json['overallProfitPercentage'] ?? 0.0,
-      totalAlerts: json['totalAlerts'] ?? 0,
-      lastStrategyUsed: json['lastStrategyUsed'] ?? 'Nenhuma',
-    );
-  }
-}
-
-// O DashboardService é responsável por buscar dados analíticos e sumarizados
-// do Backend para serem exibidos na tela inicial do usuário (Home/Dashboard).
+/// Camada de Serviço de Infraestrutura para o Dashboard.
+///
+/// Responsável pela lógica de negócios e comunicação com a API (Backend)
+/// referente aos dados consolidados do dashboard.
 class DashboardService {
-  
-  // Construtor
-  DashboardService();
+  // Simulação de dependência de um cliente HTTP (ex: Dio, Http)
+  // final ApiClient _apiClient;
+  // DashboardService(this._apiClient);
 
-  // 1. Simulação da chamada de API para buscar o conteúdo completo do Dashboard
-  Future<DashboardModel> fetchDashboardContent() async {
-    // -----------------------------------------------------------------
-    // TODO: Implementar a chamada HTTP real (GET /dashboard/summary)
-    // -----------------------------------------------------------------
-
-    // Simulação de delay de rede/processamento
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    // Simulação de dados do Dashboard
-    return DashboardModel(
-      overallProfitPercentage: 8.45, // Exemplo: 8.45% de lucro geral
-      totalAlerts: 3,
-      lastStrategyUsed: 'Strategy-v2.1',
-    );
+  DashboardService() {
+    // Construtor vazio por enquanto
   }
 
-  // 2. Simulação da chamada para atualizar/refrescar uma seção específica
-  Future<List<String>> fetchQuickMetrics() async {
-     // -----------------------------------------------------------------
-    // TODO: Implementar a chamada HTTP real para métricas rápidas
-    // -----------------------------------------------------------------
-    await Future.delayed(const Duration(milliseconds: 300));
-    return ['+8.45% Lucro', '3 Alertas', '12 Vitórias'];
+  /// Busca os dados de resumo (summary) do dashboard.
+  Future<DashboardSummaryModel> getDashboardSummary() async {
+    try {
+      // 1. Simulação de chamada de rede
+      debugPrint('[DashboardService] Buscando resumo do dashboard...');
+      await Future.delayed(const Duration(milliseconds: 650));
+
+      // 2. Simulação de dados JSON recebidos da API
+      final Map<String, dynamic> mockApiResponse = {
+        'totalStrategies': 42,
+        'averageWinRate': 78.5,
+        'lowRiskStrategies': 15,
+        'mediumRiskStrategies': 20,
+        'highRiskStrategies': 7,
+        'newStrategiesToday': 3,
+      };
+
+      // 3. Parsing dos dados usando o DashboardSummaryModel.fromJson
+      final summary = DashboardSummaryModel.fromJson(mockApiResponse);
+
+      debugPrint('[DashboardService] Resumo recebido.');
+      return summary;
+
+    } catch (e) {
+      // TODO: Implementar logging de erro robusto.
+      debugPrint('[DashboardService] Erro ao buscar resumo: $e');
+      throw Exception('Falha ao carregar dados do dashboard.');
+    }
   }
+
+  // Outros métodos de serviço (ex: gráficos) virão aqui.
 }

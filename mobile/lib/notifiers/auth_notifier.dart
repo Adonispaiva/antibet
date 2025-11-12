@@ -1,136 +1,118 @@
-import 'package:flutter/foundation.dart';
-import 'package:mobile/infra/services/auth_service.dart';
-// Importação de Notifier dependente, se necessário (ex: Analytics)
-import 'package:mobile/notifiers/behavioral_analytics_notifier.dart';
+import 'package:antibet_mobile/infra/services/auth_service.dart';
+import 'package:antibet_mobile/models/user_model.dart';
+import 'package:flutter/material.dart';
 
-// Este é o Notifier central para gerenciar todo o estado de autenticação
-// e notificar os Widgets (LoginScreen, RegisterScreen, AppRouter, etc.) sobre mudanças.
-class AuthNotifier extends ChangeNotifier {
-  // O Service de autenticação é injetado no construtor (Dependency Injection)
+/// Enum para representar os possíveis estados de autenticação.
+enum AuthStatus {
+  uninitialized, // Estado inicial, checando
+  loading,       // Carregando (ex: durante login)
+  authenticated, // Autenticado
+  unauthenticated  // Não autenticado
+}
+
+/// Gerencia o estado de autenticação do usuário.
+///
+/// Utiliza o [AuthService] para realizar operações e notifica a UI
+/// sobre mudanças no estado (logado, deslogado, carregando) e
+/// armazena os dados do [UserModel].
+class AuthNotifier with ChangeNotifier {
   final AuthService _authService;
-  
-  // Notifier para injeção de dependência cruzada (Late-Binding)
-  BehavioralAnalyticsNotifier? _analyticsNotifier;
 
-  // Variáveis de Estado
-  bool _isAuthenticated = false;
-  bool _isLoading = false;
+  AuthStatus _status = AuthStatus.uninitialized;
+  UserModel? _user;
   String? _errorMessage;
 
-  AuthNotifier(this._authService);
+  // Construtor com injeção de dependência.
+  AuthNotifier(this._authService) {
+    // Ao iniciar, verifica o status da autenticação
+    checkAuthStatus();
+  }
 
-  // Getters para acessar o estado
-  bool get isAuthenticated => _isAuthenticated;
-  bool get isLoading => _isLoading;
+  // Getters públicos (read-only)
+  AuthStatus get status => _status;
+  UserModel? get user => _user;
   String? get errorMessage => _errorMessage;
+  bool get isAuthenticated => _status == AuthStatus.authenticated;
 
-  // Setter para injeção de dependência cruzada (usado no main.dart)
-  void setAnalyticsNotifier(BehavioralAnalyticsNotifier notifier) {
-    _analyticsNotifier = notifier;
-  }
+  /// Tenta realizar o login do usuário.
+  Future<bool> login(String email, String password) async {
+    _setStatus(AuthStatus.loading);
+    _errorMessage = null;
 
-  // Define o estado de carregamento e notifica os ouvintes
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-
-  // Define a mensagem de erro e notifica os ouvintes
-  void _setErrorMessage(String? message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-  
-  // Limpa a mensagem de erro
-  void clearErrorMessage() {
-    _setErrorMessage(null);
-  }
-
-  // 1. Checa o status de autenticação (usado na inicialização do main.dart)
-  Future<void> checkAuthenticationStatus() async {
-    _setLoading(true);
     try {
-      final token = await _authService.getToken();
-      _isAuthenticated = token != null;
-      if (_isAuthenticated) {
-        // Se autenticado, pode ser um bom lugar para carregar dados do usuário
-        // ou acionar eventos de Analytics
-        _analyticsNotifier?.logEvent('User_Session_Restored');
-      }
+      // Chama o serviço (que agora retorna UserModel)
+      final user = await _authService.login(email, password);
+      _user = user;
+      _setStatus(AuthStatus.authenticated);
+      return true;
     } catch (e) {
-      _isAuthenticated = false;
-      _setErrorMessage('Erro ao verificar sessão: $e');
-    } finally {
-      _setLoading(false);
+      debugPrint('[AuthNotifier] Erro no login: $e');
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _setStatus(AuthStatus.unauthenticated);
+      return false;
     }
   }
 
-  // 2. Lógica de Login
-  Future<void> login({required String email, required String password}) async {
-    _setLoading(true);
-    _setErrorMessage(null);
+  /// Tenta registrar um novo usuário.
+  Future<bool> register(String name, String email, String password) async {
+    _setStatus(AuthStatus.loading);
+    _errorMessage = null;
+
     try {
-      final user = await _authService.login(email: email, password: password);
-      
+      // Chama o serviço de registro
+      final user = await _authService.register(name, email, password);
+      _user = user;
+      _setStatus(AuthStatus.authenticated); // Loga o usuário automaticamente
+      return true;
+    } catch (e) {
+      debugPrint('[AuthNotifier] Erro no registro: $e');
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _setStatus(AuthStatus.unauthenticated);
+      return false;
+    }
+  }
+
+  /// Verifica o status de autenticação (ex: no boot do app).
+  Future<void> checkAuthStatus() async {
+    _setStatus(AuthStatus.loading); // Visualmente, pode ser um "uninitialized"
+
+    try {
+      // Chama o serviço (retorna UserModel? ou null)
+      final user = await _authService.checkAuthStatus();
       if (user != null) {
-        _isAuthenticated = true;
-        // Aciona evento de Analytics
-        _analyticsNotifier?.logEvent('User_Logged_In', parameters: {'email': email});
+        _user = user;
+        _setStatus(AuthStatus.authenticated);
       } else {
-        // Tratamento de falha de login (ex: credenciais inválidas)
-        _setErrorMessage('Credenciais inválidas. Por favor, tente novamente.');
-        _isAuthenticated = false;
+        _user = null;
+        _setStatus(AuthStatus.unauthenticated);
       }
     } catch (e) {
-      _setErrorMessage('Erro de conexão ao tentar fazer login. Tente novamente.');
-      _isAuthenticated = false;
-    } finally {
-      // Notifica Widgets (como AppRouter) para reagir à mudança de _isAuthenticated
-      _setLoading(false);
+      debugPrint('[AuthNotifier] Erro ao checar status: $e');
+      _user = null;
+      _setStatus(AuthStatus.unauthenticated);
     }
   }
 
-  // 3. Lógica de Cadastro (Registro)
-  Future<void> register({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    _setLoading(true);
-    _setErrorMessage(null);
-    try {
-      final user = await _authService.register(
-        name: name,
-        email: email,
-        password: password,
-      );
-
-      if (user != null) {
-        // Assumimos que o registro bem-sucedido também autentica o usuário
-        _isAuthenticated = true;
-        _analyticsNotifier?.logEvent('User_Registered');
-      } else {
-        // Tratamento de falha de registro (ex: e-mail já em uso)
-        _setErrorMessage('Falha no cadastro. O e-mail pode já estar em uso.');
-        _isAuthenticated = false;
-      }
-    } catch (e) {
-      _setErrorMessage('Erro de conexão ao tentar se cadastrar. Tente novamente.');
-      _isAuthenticated = false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // 4. Lógica de Logout
+  /// Realiza o logout do usuário.
   Future<void> logout() async {
-    _setLoading(true);
-    await _authService.logout();
-    _isAuthenticated = false;
-    _setErrorMessage(null);
-    // Aciona evento de Analytics
-    _analyticsNotifier?.logEvent('User_Logged_Out');
-    // Notifica Widgets e o AppRouter
-    _setLoading(false);
+    _setStatus(AuthStatus.loading);
+    try {
+      await _authService.logout();
+      _user = null;
+      _setStatus(AuthStatus.unauthenticated);
+    } catch (e) {
+      debugPrint('[AuthNotifier] Erro no logout: $e');
+      // Mesmo em erro, força o estado de deslogado na UI
+      _user = null;
+      _setStatus(AuthStatus.unauthenticated);
+    }
+  }
+
+  /// Helper interno para gerenciar o estado e notificar ouvintes.
+  void _setStatus(AuthStatus newStatus) {
+    if (_status != newStatus) {
+      _status = newStatus;
+      notifyListeners();
+    }
   }
 }
