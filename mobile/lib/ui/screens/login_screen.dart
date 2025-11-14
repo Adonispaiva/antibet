@@ -1,147 +1,127 @@
-import 'package:antibet_mobile/notifiers/auth_notifier.dart';
-import 'package:antibet_mobile/ui/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:antibet/core/notifiers/auth_notifier.dart';
+import 'package:antibet/core/notifiers/app_config_notifier.dart';
+import 'package:antibet/ui/widgets/custom_text_field.dart'; // Importação do widget reutilizável
 
-/// Tela de Autenticação (Login).
-///
-/// Esta tela é 'Stateless' e consome o [AuthNotifier] para
-/// gerenciar o estado de login, exibindo feedback (loading/erro)
-/// e tratando a submissão do formulário.
-class LoginScreen extends StatelessWidget {
+/// Tela responsável por receber as credenciais do usuário e acionar o processo de autenticação.
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  // Controladores para os campos de texto
-  // (Eles são a única exceção de 'estado' permitida em um StatelessWidget)
-  static final _emailController = TextEditingController();
-  static final _passwordController = TextEditingController();
-  static final _formKey = GlobalKey<FormState>();
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
-  /// Função de callback para tentar o login.
-  /// Usamos 'context.read' aqui pois estamos disparando uma *ação*.
-  void _onLoginPressed(BuildContext context) async {
-    // 1. Valida o formulário
-    if (!(_formKey.currentState?.validate() ?? false)) {
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  /// Lógica de login que chama o AuthNotifier.
+  void _performLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      // Futuramente, exibirá um Snackbar com erro
       return;
     }
 
-    // 2. Chama a *ação* no Notifier
-    final authNotifier = context.read<AuthNotifier>();
-    await authNotifier.login(
-      _emailController.text,
-      _passwordController.text,
-    );
-    
-    // 3. O 'home' no main.dart (Consumer) tratará a navegação
-    // se o login for bem-sucedido. Se falhar, o 'watch'
-    // abaixo exibirá a mensagem de erro.
-  }
+    setState(() {
+      _isLoading = true;
+    });
 
-  /// Navega para a tela de registro.
-  void _onRegisterPressed(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
+    final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
+    
+    // Chama o método login simulado no Notifier
+    await authNotifier.login(_emailController.text, _passwordController.text);
+    
+    // Nota: O roteamento para a Dashboard é feito automaticamente pelo AuthCheckerScreen
+    // no app_routes.dart, pois o estado de autenticação mudará.
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Usamos 'context.watch' para *observar* mudanças de estado.
-    final authStatus = context.watch<AuthNotifier>().status;
-    final errorMessage = context.watch<AuthNotifier>().errorMessage;
-    final isLoading = authStatus == AuthStatus.loading;
+    // Usa o AppConfigNotifier para permitir que o tema seja alternado
+    final appConfig = Provider.of<AppConfigNotifier>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('AntiBet Login'),
-        centerTitle: true,
+        actions: [
+          // Botão para alternar o tema (para fins de teste inicial)
+          IconButton(
+            icon: Icon(appConfig.isDarkMode ? Icons.wb_sunny : Icons.nightlight_round),
+            onPressed: appConfig.toggleTheme,
+          ),
+        ],
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // TODO: Adicionar Logo
-                const Icon(Icons.shield_outlined, size: 80),
-                const SizedBox(height: 24),
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // Logo ou Título Principal
+              const Text(
+                'Bem-vindo ao AntiBet',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 40),
 
-                // --- Campo de Email ---
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'E-mail',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  validator: (value) =>
-                      (value == null || !value.contains('@'))
-                          ? 'Por favor, insira um e-mail válido.'
-                          : null,
-                  enabled: !isLoading, // Desativa campos durante o loading
+              // Campo de E-mail (Refatorado)
+              CustomTextField(
+                controller: _emailController,
+                labelText: 'E-mail',
+                icon: Icons.email,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 20),
+
+              // Campo de Senha (Refatorado)
+              CustomTextField(
+                controller: _passwordController,
+                labelText: 'Senha',
+                icon: Icons.lock,
+                isPassword: true,
+              ),
+C              const SizedBox(height: 30),
+
+              // Botão de Login
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _performLogin,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Entrar',
+                          style: TextStyle(fontSize: 18),
+                        ),
                 ),
-                const SizedBox(height: 16),
-
-                // --- Campo de Senha ---
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Senha',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
-                  validator: (value) => (value == null || value.length < 4)
-                      ? 'Senha deve ter no mínimo 4 caracteres.'
-                      : null,
-                  enabled: !isLoading, // Desativa campos durante o loading
-                ),
-                const SizedBox(height: 24),
-
-                // --- Feedback de Erro ---
-                if (errorMessage != null && !isLoading)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Text(
-                      errorMessage,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                // --- Botão de Login ---
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    // Se estiver carregando, mostra o spinner, senão, o texto.
-                    child: isLoading
-                        ? const CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          )
-                        : const Text(
-                            'ENTRAR',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                    onPressed: isLoading ? null : () => _onLoginPressed(context),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // --- Botão de Registro ---
-                TextButton(
-                  child: const Text('Não tem conta? Registre-se'),
-                  onPressed: isLoading ? null : () => _onRegisterPressed(context),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Placeholder para outras ações
+              TextButton(
+                onPressed: () {
+                  // Ação de recuperação de senha (a ser implementada)
+                },
+                child: const Text('Esqueceu a senha?'),
+              ),
+            ],
           ),
         ),
       ),

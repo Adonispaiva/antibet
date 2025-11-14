@@ -1,54 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:antibet/src/core/services/auth_service.dart';
-import 'package:antibet/src/core/notifiers/behavioral_analytics_notifier.dart'; // Dependência para late-binding
+import 'package:flutter/foundation.dart';
 
-// O Notifier gerencia o estado reativo de autenticação para a UI (AppRouter, Splash, etc.).
-
+/// Notifier responsável por gerenciar o estado de autenticação do usuário.
+/// É o pilar da Camada de Estado (Notifiers), responsável por notificar 
+/// os *widgets* de qualquer mudança no status de login.
 class AuthNotifier extends ChangeNotifier {
-  final AuthService _service;
-  
-  // Variável para armazenar o estado de login
+  // Estado que reflete se o usuário está logado ou não.
   bool _isLoggedIn = false;
   
-  // Late-Binding para Notifiers que precisam reagir a eventos de Auth.
-  BehavioralAnalyticsNotifier? _analyticsNotifier;
-
-  AuthNotifier(this._service);
-
-  // Getter público para o estado
+  // Getter público para acessar o estado de login de forma imutável.
   bool get isLoggedIn => _isLoggedIn;
 
-  // Setter para injeção de dependência cruzada (Late-Binding)
-  void setAnalyticsNotifier(BehavioralAnalyticsNotifier notifier) {
-    _analyticsNotifier = notifier;
-  }
+  // Variável para armazenar o token ou informação do usuário, simulando
+  // uma sessão ativa. Por enquanto, apenas um placeholder.
+  String? _userToken;
+  String? get userToken => _userToken;
 
-  /// Verifica o status de autenticação na inicialização do aplicativo.
-  Future<void> checkAuthenticationStatus() async {
-    _isLoggedIn = await _service.checkAuthenticationStatus();
-    // Notifica os ouvintes (principalmente o AppRouter) sobre o estado inicial
+  /// Método de simulação de login.
+  /// No futuro, esta função irá se conectar ao AuthService.
+  Future<void> login(String email, String password) async {
+    // Simulação de delay de API
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    // Simulação de sucesso no login
+    _isLoggedIn = true;
+    _userToken = 'simulated_jwt_token_for_${email}';
+    
+    // Notifica todos os widgets que estão escutando o AuthNotifier sobre a mudança de estado.
     notifyListeners();
   }
 
-  /// Tenta realizar o login e atualiza o estado.
-  Future<bool> login(String email, String password) async {
-    final success = await _service.login(email, password);
-    
-    if (success) {
-      _isLoggedIn = true;
-      // Notifica o Analytics sobre o evento de Login (simulando um evento comportamental)
-      _analyticsNotifier?.recordBehavioralEvent('login_successful');
-      notifyListeners();
-    }
-    return success;
-  }
-
-  /// Realiza o logout e atualiza o estado.
+  /// Método de simulação de logout.
+  /// No futuro, esta função irá limpar a sessão do AuthService e StorageService.
   Future<void> logout() async {
-    await _service.logout();
+    // Simulação de delay para limpar sessão
+    await Future.delayed(const Duration(milliseconds: 500));
+    
     _isLoggedIn = false;
-    // Notifica o Analytics sobre o evento de Logout (pode ser usado para calibração)
-    _analyticsNotifier?.recordBehavioralEvent('logout');
+    _userToken = null;
+    
+    // Notifica todos os widgets para atualizar a UI (Ex: ir para LoginScreen).
     notifyListeners();
   }
 }

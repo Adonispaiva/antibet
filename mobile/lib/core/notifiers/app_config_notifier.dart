@@ -1,37 +1,44 @@
-import 'package:flutter/material.dart';
-import 'package:antibet/src/core/services/app_config_service.dart';
+import 'package:flutter/foundation.dart';
 
-// O Notifier gerencia o estado reativo das configurações do aplicativo, como o modo de tema.
-
+/// Notifier responsável por gerenciar o estado das configurações globais do aplicativo,
+/// como tema (claro/escuro) e preferências de notificação.
 class AppConfigNotifier extends ChangeNotifier {
-  final AppConfigService _service;
-  
-  // Variável para armazenar o estado do modo escuro
+  // Estado privado do tema. Padrão: Claro.
   bool _isDarkMode = false;
+  
+  // Estado privado do status das notificações. Padrão: Habilitado.
+  bool _areNotificationsEnabled = true;
 
-  AppConfigNotifier(this._service);
-
-  // Getter público para o estado (lido pelo AntiBetMobileApp no main.dart)
+  // Getters públicos
   bool get isDarkMode => _isDarkMode;
+  bool get areNotificationsEnabled => _areNotificationsEnabled;
 
-  /// Carrega o status do modo escuro a partir do serviço na inicialização.
-  Future<void> loadConfig() async {
-    _isDarkMode = await _service.loadDarkModeStatus();
-    // Notifica os ouvintes (AppRouter e AntiBetMobileApp) sobre o estado inicial
+  /// Alterna o tema de claro para escuro ou vice-versa.
+  Future<void> toggleTheme() async {
+    // Simulação de delay para operação de persistência (StorageService).
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    _isDarkMode = !_isDarkMode;
+    
+    // Notifica a UI para recarregar com o novo tema.
     notifyListeners();
   }
 
-  /// Alterna o modo escuro e persiste a mudança via serviço.
-  Future<void> toggleDarkMode(bool newValue) async {
-    if (_isDarkMode == newValue) return; // Evita trabalho desnecessário
-    
-    _isDarkMode = newValue;
-    
-    // 1. Persiste a mudança no serviço
-    await _service.setDarkModeStatus(newValue);
-    
-    // 2. Notifica a UI
-    notifyListeners();
-    print('Modo Escuro alternado para: $_isDarkMode');
+  /// Define explicitamente o tema.
+  Future<void> setDarkMode(bool value) async {
+    if (_isDarkMode != value) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      _isDarkMode = value;
+      notifyListeners();
+    }
+  }
+
+  /// Alterna o status de ativação das notificações.
+  Future<void> toggleNotifications(bool value) async {
+    if (_areNotificationsEnabled != value) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      _areNotificationsEnabled = value;
+      notifyListeners();
+    }
   }
 }

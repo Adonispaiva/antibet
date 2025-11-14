@@ -1,43 +1,48 @@
-name: antibet_app
-description: Aplicativo Mobile AntiBet - Navegador com Detector de Advertorial.
-publish_to: 'none' # Impede uploads acidentais para pub.dev
+# mobile/pubspec.yaml
 
+name: antibet
+description: O aplicativo AntiBet (Inovexa Software).
+publish_to: 'none' # Impede a publicação acidental.
+
+# A versão do aplicativo (Build).
 version: 1.0.0+1
 
 environment:
+  # SDK do Flutter (Dart 3.x)
   sdk: '>=3.0.0 <4.0.0'
 
+# Dependências de Pacotes
+# Este é o arquivo necessário para a Fase de Integração.
 dependencies:
   flutter:
     sdk: flutter
-  
-  # Gerenciamento de Estado (Card 3/Provider)
-  provider: ^6.0.5 
 
-  # Comunicação HTTP (Cliente de API para o Backend)
-  http: ^1.1.0 
+  # 1. Gerenciamento de Estado (Injeção de Dependência)
+  provider: ^6.0.5
 
-  # Navegador Web (Widget principal da tela)
-  flutter_inappwebview: ^5.8.0 
+  # 2. Persistência Local (Fase 3 do Relatório)
+  shared_preferences: ^2.2.0
 
-  # Utilidades (Para models e parsing)
+  # 3. Comunicação de API (Serviços de API E2E)
+  http: ^1.1.0
+
+  # 4. Formatação (Datas no Diário, Notificações)
+  intl: ^0.18.1
+
+  # 5. Abertura de Links (Fluxo de Pagamento)
+  url_launcher: ^6.1.14
+
+  # 6. Ícones Padrão
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
-  # Ferramentas de Teste
   flutter_test:
     sdk: flutter
-  
-  # Mocking (para testes unitários de Service e Provider)
-  mockito: ^5.4.2
-  build_runner: ^2.4.6 # Necessário para gerar mocks com mockito
-
-  # Lints (Qualidade de Código)
   flutter_lints: ^2.0.0
 
+# Configurações do Flutter
 flutter:
   uses-material-design: true
 
-  # (Opcional: Assets ou Fonts podem ser definidos aqui futuramente)
   # assets:
-  #   - assets/
+  #   - assets/images/logo.png

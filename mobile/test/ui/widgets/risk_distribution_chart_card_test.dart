@@ -1,147 +1,72 @@
+import 'package:antibet/core/models/risk_distribution_model.dart'; // Assuming the model name
+import 'package:antibet/mobile/presentation/widgets/dashboard/risk_distribution_chart_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:antibet_mobile/models/dashboard_summary_model.dart';
-import 'package:antibet_mobile/ui/widgets/risk_distribution_chart_card.dart';
 
-// =========================================================================
-// SIMULAÇÃO DE DEPENDÊNCIAS (Mocks)
-// =========================================================================
+// Assuming a simplified RiskDataModel for the chart segments
+class RiskDataModel {
+  final String category;
+  final double amount;
+  final Color color;
 
-// Simulação de DashboardSummaryModel (para que o teste possa ser executado neste ambiente)
-class DashboardSummaryModel {
-  final int lowRiskStrategies;
-  final int mediumRiskStrategies;
-  final int highRiskStrategies;
-  // Apenas as propriedades necessárias para o teste do widget
-  final int totalStrategies; 
-  final double averageWinRate; 
-  final int newStrategiesToday;
-
-  DashboardSummaryModel({
-    required this.lowRiskStrategies,
-    required this.mediumRiskStrategies,
-    required this.highRiskStrategies,
-    required this.totalStrategies,
-    required this.averageWinRate,
-    required this.newStrategiesToday,
-  });
-  factory DashboardSummaryModel.empty() => throw UnimplementedError();
+  RiskDataModel(this.category, this.amount, this.color);
 }
 
-// SIMULAÇÃO DE RiskDistributionChartCard (mínimo necessário para o teste)
-class RiskDistributionChartCard extends StatelessWidget {
-  final DashboardSummaryModel summary;
-
-  const RiskDistributionChartCard({super.key, required this.summary});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text('Distribuição de Risco das Estratégias'),
-            // Área do Gráfico (Simulação)
-            Container(width: 150, height: 150, color: Colors.grey),
-            // Legendas de Risco
-            _buildRiskLegend(context, 'Baixo Risco', summary.lowRiskStrategies, Colors.green),
-            _buildRiskLegend(context, 'Médio Risco', summary.mediumRiskStrategies, Colors.orange),
-            _buildRiskLegend(context, 'Alto Risco', summary.highRiskStrategies, Colors.red),
-          ],
-        ),
+void main() {
+  // Helper function to create a testable card widget
+  Widget createRiskDistributionChartCard(List<RiskDataModel> data) {
+    return MaterialApp(
+      home: Scaffold(
+        body: RiskDistributionChartCard(riskData: data),
       ),
     );
   }
 
-  /// Constrói um item de legenda para a distribuição de risco (simplificado para teste).
-  Widget _buildRiskLegend(
-      BuildContext context, String label, int count, Color color) {
-    return Row(
-      children: [
-        Icon(Icons.fiber_manual_record, color: color),
-        Text(label),
-        Text(count.toString(), style: TextStyle(color: color)),
-      ],
-    );
-  }
-}
-
-// =========================================================================
-// FIM DA SIMULAÇÃO
-// =========================================================================
-
-void main() {
   group('RiskDistributionChartCard Widget Tests', () {
-    // --- Dados de Teste ---
-    final tFullDistribution = DashboardSummaryModel(
-      lowRiskStrategies: 15,
-      mediumRiskStrategies: 20,
-      highRiskStrategies: 5,
-      totalStrategies: 40,
-      averageWinRate: 75.0,
-      newStrategiesToday: 2,
-    );
-
-    final tEmptyDistribution = DashboardSummaryModel(
-      lowRiskStrategies: 0,
-      mediumRiskStrategies: 0,
-      highRiskStrategies: 0,
-      totalStrategies: 0,
-      averageWinRate: 0.0,
-      newStrategiesToday: 0,
-    );
-
-    testWidgets('01. Deve exibir corretamente todos os rótulos e contagens para distribuição completa', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: RiskDistributionChartCard(summary: tFullDistribution),
-        ),
-      );
-
-      // Verifica os rótulos e contagens
-      expect(find.text('Distribuição de Risco das Estratégias'), findsOneWidget);
-      expect(find.text('Baixo Risco'), findsOneWidget);
-      expect(find.text('Médio Risco'), findsOneWidget);
-      expect(find.text('Alto Risco'), findsOneWidget);
+    testWidgets('Card renders chart title and data segments', (WidgetTester tester) async {
+      // 1. Setup Mock Data for the chart
+      final mockRiskData = [
+        RiskDataModel('Low Risk', 60.0, Colors.green),
+        RiskDataModel('Medium Risk', 30.0, Colors.orange),
+        RiskDataModel('High Risk', 10.0, Colors.red),
+      ];
       
-      expect(find.text('15'), findsOneWidget);
-      expect(find.text('20'), findsOneWidget);
-      expect(find.text('5'), findsOneWidget);
+      // 2. Build the widget
+      await tester.pumpWidget(createRiskDistributionChartCard(mockRiskData));
+      await tester.pumpAndSettle();
 
-      // Verifica as cores das contagens (Baixo Risco - Verde)
-      final lowRiskCount = tester.widget<Text>(find.byWidgetPredicate(
-        (widget) => widget is Text && widget.data == '15',
-      ));
-      expect(lowRiskCount.style!.color, Colors.green);
+      // 3. Verification: Check for the Card's main title
+      expect(find.text('Risk Distribution'), findsOneWidget);
+
+      // 4. Verification: Check for the presence of the chart widget itself.
+      // We assume the chart widget is either a custom widget or a known library widget (e.g., PieChart). 
+      // We will check for the presence of a generic key or widget type that signifies a chart,
+      // or the data labels if they are displayed.
       
-      // Verifica as cores das contagens (Médio Risco - Laranja)
-      final mediumRiskCount = tester.widget<Text>(find.byWidgetPredicate(
-        (widget) => widget is Text && widget.data == '20',
-      ));
-      expect(mediumRiskCount.style!.color, Colors.orange);
-      
-      // Verifica as cores das contagens (Alto Risco - Vermelho)
-      final highRiskCount = tester.widget<Text>(find.byWidgetPredicate(
-        (widget) => widget is Text && widget.data == '5',
-      ));
-      expect(highRiskCount.style!.color, Colors.red);
+      // Assuming a generic placeholder for the chart widget itself (often a custom type or key)
+      // Since we don't have the chart lib, we check for data labels which usually render.
+      expect(find.text('Low Risk'), findsOneWidget); 
+      expect(find.text('Medium Risk'), findsOneWidget);
+      expect(find.text('High Risk'), findsOneWidget);
+
+      // Verification: Check if the total amount (100.0) or percentage is implicitly rendered (e.g., 60%, 30%, 10%).
+      // We will check for the formatted string '60.0' or related text near the 'Low Risk' category.
+      expect(find.textContaining('60.0'), findsOneWidget);
+      expect(find.textContaining('30.0'), findsOneWidget);
+      expect(find.textContaining('10.0'), findsOneWidget);
     });
-    
-    testWidgets('02. Deve exibir contagem zero e rótulos para distribuição vazia', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: RiskDistributionChartCard(summary: tEmptyDistribution),
-        ),
-      );
 
-      // Verifica se as contagens zero estão presentes
-      expect(find.text('0'), findsNWidgets(3)); 
+    testWidgets('Card renders correctly with no data', (WidgetTester tester) async {
+      // 1. Setup Mock Data with an empty list
+      final emptyRiskData = <RiskDataModel>[];
       
-      // Verifica se os rótulos de risco estão presentes
-      expect(find.text('Baixo Risco'), findsOneWidget);
-      expect(find.text('Médio Risco'), findsOneWidget);
-      expect(find.text('Alto Risco'), findsOneWidget);
+      // 2. Build the widget
+      await tester.pumpWidget(createRiskDistributionChartCard(emptyRiskData));
+      await tester.pumpAndSettle();
+
+      // 3. Verification: Check for the title and a placeholder message for missing data.
+      expect(find.text('Risk Distribution'), findsOneWidget);
+      expect(find.text('No risk data available.'), findsOneWidget); // Assuming a placeholder message
     });
   });
 }

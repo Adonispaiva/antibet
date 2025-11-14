@@ -1,71 +1,96 @@
-// Simulação de um serviço de armazenamento seguro (ex: Flutter Secure Storage, SharedPreferences)
-// Nota: O StorageService real é injetado, mas a simulação básica está aqui.
-class StorageService {
-  Future<void> saveToken(String token) async {
-    // Implementação real: armazenar token em local seguro
-    print('Token salvo: $token');
-  }
+// mobile/lib/core/services/auth_service.dart
 
-  Future<String?> loadToken() async {
-    // Implementação real: carregar token
-    return Future.value('mock_valid_token_123'); // Simulação de token válido
-  }
+import 'dart:convert';
+import 'package:antibet/core/services/storage_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:antibet/config/app_config.dart'; // Importação do AppConfig
 
-  Future<void> deleteToken() async {
-    // Implementação real: deletar token
-    print('Token deletado.');
-  }
-}
+// const String _kApiUrl = 'http://localhost:3000/api/auth'; // Removido!
+
+const String _tokenKey = 'auth_token';
 
 class AuthService {
   final StorageService _storageService;
-  // Chave de autenticação (simulada)
-  String? _authToken;
-
+  
   AuthService(this._storageService);
 
-  // Getter para o token
-  String? get authToken => _authToken;
+  Future<String?> getToken() async => await _storageService.read(_tokenKey);
+  
+  Future<void> saveToken(String token) async => await _storageService.write(_tokenKey, token);
+  
+  Future<void> clearToken() async => await _storageService.delete(_tokenKey);
 
-  /// Simula a chamada de login ao backend.
-  Future<bool> login(String email, String password) async {
-    // Mock: Simula falha se a senha for "fail"
-    if (password == 'fail') {
-      return false; 
-    }
+  /// Tenta realizar o login com a API do Backend.
+  Future<bool> attemptLogin(String email, String password) async {
+    final url = Uri.parse('${AppConfig.apiUrl}/auth/login'); // Usando AppConfig
     
-    // Simulação de chamada ao backend (FastAPI)
-    await Future.delayed(const Duration(milliseconds: 500)); 
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
 
-    // Simulação de sucesso: Geração e salvamento do token
-    final token = 'jwt_${DateTime.now().millisecondsSinceEpoch}';
-    _authToken = token;
-    await _storageService.saveToken(token);
-    
-    return true;
-  }
-
-  /// Limpa o estado de autenticação.
-  Future<void> logout() async {
-    _authToken = null;
-    await _storageService.deleteToken();
-  }
-
-  /// Verifica se há um token válido e carrega o estado de login na inicialização.
-  Future<bool> checkAuthenticationStatus() async {
-    final storedToken = await _storageService.loadToken();
-
-    if (storedToken != null && _validateToken(storedToken)) {
-      _authToken = storedToken;
-      return true;
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final token = data['token'];
+        
+        if (token != null) {
+          await saveToken(token);
+          debugPrint('AuthService: Login bem-sucedido. Token salvo.');
+          return true;
+        }
+      }
+      
+      debugPrint('AuthService: Falha no login. Status: ${response.statusCode}');
+      return false;
+      
+    } catch (e) {
+      debugPrint('AuthService: Erro de conexão durante o login: $e');
+      return false;
     }
-    return false;
   }
+  
+  /// Tenta realizar o registro de um novo usuário com a API do Backend.
+  Future<bool> attemptRegistration(String name, String email, String password) async {
+    final url = Uri.parse('${AppConfig.apiUrl}/auth/register'); // Usando AppConfig
+    
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
 
-  // Simula a validação de token (expiração, formato, etc.)
-  bool _validateToken(String token) {
-    // Lógica real envolveria verificar a validade no backend ou decodificar JWT.
-    // Para o mock, qualquer token carregado é considerado válido.
-    return token.startsWith('mock_valid_token') || token.startsWith('jwt_');
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final token = data['token']; 
+        
+        if (token != null) {
+          await saveToken(token);
+          debugPrint('AuthService: Registro bem-sucedido. Token salvo.');
+          return true;
+        }
+      }
+      
+      debugPrint('AuthService: Falha no registro. Status: ${response.statusCode}');
+      // Em caso de falha de validação (status 400), o corpo da resposta pode conter detalhes.
+      if (response.statusCode == 400) {
+           debugPrint('AuthService: Detalhes do erro: ${response.body}');
+      }
+      return false;
+      
+    } catch (e) {
+      debugPrint('AuthService: Erro de conexão durante o registro: $e');
+      return false;
+    }
   }
 }

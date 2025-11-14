@@ -1,128 +1,98 @@
-import 'package:flutter/material.dart';
+import 'package:antibet/core/notifiers/app_config_notifier.dart';
+import 'package:antibet/core/services/app_config_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:antibet/src/core/services/app_config_service.dart';
-import 'package:antibet/src/core/notifiers/app_config_notifier.dart';
-
-// Mocks
-class MockAppConfigService extends Mock implements AppConfigService {
-  @override
-  Future<bool> loadDarkModeStatus() => super.noSuchMethod(
-        Invocation.method(#loadDarkModeStatus, []),
-        returnValue: Future.value(false), // Padrão é Modo Claro
-      ) as Future<bool>;
-
-  @override
-  Future<void> setDarkModeStatus(bool isDarkMode) => super.noSuchMethod(
-        Invocation.method(#setDarkModeStatus, [isDarkMode]),
-        returnValue: Future.value(null),
-      ) as Future<void>;
-}
+// Mock da classe AppConfigService, que é a dependência do Notifier
+class MockAppConfigService extends Mock implements AppConfigService {}
 
 void main() {
-  late MockAppConfigService mockService;
-  late AppConfigNotifier notifier;
+  MockAppConfigService mockAppConfigService;
+  AppConfigNotifier appConfigNotifier;
 
   setUp(() {
-    mockService = MockAppConfigService();
-    // Inicializa o Notifier com o mock. O construtor não chama loadConfig.
-    notifier = AppConfigNotifier(mockService);
+    mockAppConfigService = MockAppConfigService();
+    // Inicializa o Notifier com o Service mockado
+    appConfigNotifier = AppConfigNotifier(mockAppConfigService);
   });
 
-  group('AppConfigNotifier - Initialization and Loading', () {
-    test('loadConfig should load state from service and notify listeners', () async {
-      // Setup: Mocka o serviço para retornar true (Modo Escuro)
-      when(mockService.loadDarkModeStatus()).thenAnswer((_) => Future.value(true));
+  group('AppConfigNotifier Unit Tests', () {
+    test('initial state should reflect loaded configuration (Dark Mode: false)', () async {
+      // 1. Configura o mock para simular que o modo escuro NÃO está ativo no storage.
+      when(mockAppConfigService.getDarkMode()).thenAnswer((_) async => false);
+      when(mockAppConfigService.getCurrency()).thenAnswer((_) async => 'BRL');
       
-      final listener = MockListener();
-      notifier.addListener(listener);
+      // 2. Chama o método de carregamento inicial
+      await appConfigNotifier.loadInitialConfig();
 
-      // Ação
-      await notifier.loadConfig();
-
-      // Verificação
-      expect(notifier.isDarkMode, isTrue);
-      verify(mockService.loadDarkModeStatus()).called(1);
-      verify(listener()).called(1);
-      
-      notifier.removeListener(listener);
+      // 3. Verificação
+      expect(appConfigNotifier.isDarkMode, isFalse);
+      expect(appConfigNotifier.currency, equals('BRL'));
+      verify(mockAppConfigService.getDarkMode()).called(1);
     });
 
-    test('Initial state should be false before loadConfig is called', () {
-      // O estado é false no construtor antes do Future ser resolvido
-      expect(notifier.isDarkMode, isFalse);
-      verifyNever(mockService.loadDarkModeStatus());
-    });
-  });
+    test('initial state should reflect loaded configuration (Dark Mode: true)', () async {
+      // 1. Configura o mock para simular que o modo escuro ESTÁ ativo no storage.
+      when(mockAppConfigService.getDarkMode()).thenAnswer((_) async => true);
+      when(mockAppConfigService.getCurrency()).thenAnswer((_) async => 'USD');
 
-  group('AppConfigNotifier - Toggle Dark Mode', () {
-    test('toggleDarkMode should change state to true, persist, and notify listeners', () async {
-      // Setup: Estado inicial falso
-      (notifier as dynamic)._isDarkMode = false; 
-      
-      final listener = MockListener();
-      notifier.addListener(listener);
+      // 2. Chama o método de carregamento inicial
+      await appConfigNotifier.loadInitialConfig();
 
-      // Ação: Mudar para true
-      await notifier.toggleDarkMode(true);
-
-      // Verificação 1: O estado deve ser true
-      expect(notifier.isDarkMode, isTrue);
-
-      // Verificação 2: O serviço deve ser chamado para persistir
-      verify(mockService.setDarkModeStatus(true)).called(1);
-      
-      // Verificação 3: O listener deve ser notificado
-      verify(listener()).called(1);
-      
-      notifier.removeListener(listener);
+      // 3. Verificação
+      expect(appConfigNotifier.isDarkMode, isTrue);
+      expect(appConfigNotifier.currency, equals('USD'));
     });
     
-    test('toggleDarkMode should change state to false, persist, and notify listeners', () async {
-      // Setup: Estado inicial true
-      (notifier as dynamic)._isDarkMode = true; 
+    test('setDarkMode should update state, call service, and notify listeners', () async {
+      const bool newMode = true;
       
-      final listener = MockListener();
-      notifier.addListener(listener);
-
-      // Ação: Mudar para false
-      await notifier.toggleDarkMode(false);
-
-      // Verificação 1: O estado deve ser false
-      expect(notifier.isDarkMode, isFalse);
-
-      // Verificação 2: O serviço deve ser chamado para persistir
-      verify(mockService.setDarkModeStatus(false)).called(1);
+      // 1. Configura o mock para que a escrita no storage retorne sucesso
+      when(mockAppConfigService.setDarkMode(newMode)).thenAnswer((_) async => true);
       
-      // Verificação 3: O listener deve ser notificado
+      // Monitora se o notifyListeners é chamado
+      final listener = MockFunction();
+      appConfigNotifier.addListener(listener);
+
+      // 2. Chama o método de alteração
+      await appConfigNotifier.setDarkMode(newMode);
+
+      // 3. Verificação
+      // Estado interno atualizado
+      expect(appConfigNotifier.isDarkMode, isTrue);
+      
+      // Service chamado
+      verify(mockAppConfigService.setDarkMode(newMode)).called(1);
+      
+      // Ouvintes notificados
       verify(listener()).called(1);
       
-      notifier.removeListener(listener);
+      appConfigNotifier.removeListener(listener);
     });
 
-    test('toggleDarkMode should not persist or notify if value is the same', () async {
-      // Setup: Estado inicial true
-      (notifier as dynamic)._isDarkMode = true; 
+    test('setCurrency should update state, call service, and notify listeners', () async {
+      const String newCurrency = 'EUR';
       
-      final listener = MockListener();
-      notifier.addListener(listener);
-
-      // Ação: Tentar mudar para true (mesmo valor)
-      await notifier.toggleDarkMode(true);
-
-      // Verificação: O serviço NÃO deve ser chamado
-      verifyNever(mockService.setDarkModeStatus(any));
+      // 1. Configura o mock
+      when(mockAppConfigService.setCurrency(newCurrency)).thenAnswer((_) async => true);
       
-      // Verificação: O listener NÃO deve ser notificado
-      verifyNever(listener());
+      final listener = MockFunction();
+      appConfigNotifier.addListener(listener);
 
-      notifier.removeListener(listener);
+      // 2. Chama o método de alteração
+      await appConfigNotifier.setCurrency(newCurrency);
+
+      // 3. Verificação
+      expect(appConfigNotifier.currency, equals('EUR'));
+      verify(mockAppConfigService.setCurrency(newCurrency)).called(1);
+      verify(listener()).called(1);
+      
+      appConfigNotifier.removeListener(listener);
     });
   });
 }
 
-// Helper para testar se notifyListeners foi chamado
-class MockListener extends Mock {
-  void call();
+// Classe Mock auxiliar para rastrear chamadas a notifyListeners
+class MockFunction extends Mock {
+  call();
 }
