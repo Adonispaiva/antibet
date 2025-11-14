@@ -1,14 +1,16 @@
+// backend/src/main.ts
+
 /*
- * NOTA DE DIREÇÃO:
- * v1.0 - Arquivo de Bootstrap Padrão do NestJS.
- * v1.1 - Adicionado 'rawBody: true' na inicialização.
- * Isso é CRÍTICO para que o Webhook do Stripe (que precisa do corpo
- * bruto da requisição) possa validar a assinatura.
+ * NOTA DE DIREÇÃO (Orion v1.2):
+ * Arquivo final de Bootstrap.
+ * v1.1 (Adonis): Adicionado 'rawBody: true' (Crítico para Stripe).
+ * v1.2 (Orion): Fundido v1.1 com ConfigService e GlobalPrefix.
  */
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config'; // Importa o ConfigService
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,26 +18,31 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  // Habilita o CORS
+  // 1. Acessa o ConfigService
+  const configService = app.get(ConfigService);
+  
+  // 2. Define a porta da API (padrão 3000 se não estiver no .env)
+  const port = configService.get<number>('API_PORT') || 3000;
+
+  // 3. Habilita o CORS
   app.enableCors({
     origin: '*', // TODO: Restringir para o 'CLIENT_URL' em produção
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });
 
-  // Habilita a validação global de DTOs (class-validator)
+  // 4. Habilita a validação global de DTOs (class-validator)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Remove campos que não estão no DTO
       forbidNonWhitelisted: true, // Lança erro se campos extras forem enviados
-      transform: true, // Transforma o payload nos tipos do DTO (ex: string -> number)
+      transform: true, // Transforma o payload nos tipos do DTO
     }),
   );
 
-  // Define o prefixo global da API (ex: /api/auth, /api/plans)
+  // 5. Define o prefixo global da API (ex: /api/auth, /api/journal)
   app.setGlobalPrefix('api');
 
-  const port = process.env.PORT || 3000;
+  console.log(`[Orion] Servidor Backend AntiBet (v1.2) iniciando na porta ${port}...`);
   await app.listen(port);
-  console.log(`[Orion] Backend AntiBet (v2.1) operacional na porta ${port}`);
 }
 bootstrap();

@@ -1,38 +1,46 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { UserModule } from '../user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // Importa ConfigModule e ConfigService
-import { JwtStrategy } from './strategies/jwt.strategy'; // NOVO
-import { JwtAuthGuard } from './guards/jwt-auth.guard'; // NOVO
+
+// Módulos internos
+import { UserModule } from '../user/user.module';
+import { AppConfigurationModule } from '../config/config.module';
+import { AppConfigService } from '../config/app-config.service';
+
+// Serviços e Estratégias
+import { AuthService } from './auth.service';
+import { LocalStrategy } from './strategies/local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     UserModule,
-    PassportModule,
-    // CRÍTICO: Configuração Assíncrona para ler o .env com segurança
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    AppConfigurationModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule], // Importa o módulo de Configuração
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'), // Lê a chave secreta
-        signOptions: { expiresIn: '60m' }, // Token expira em 60 minutos
+      imports: [AppConfigurationModule],
+      inject: [AppConfigService],
+      useFactory: async (configService: AppConfigService) => ({
+        secret: configService.JWT_SECRET,
+        signOptions: {
+          expiresIn: configService.JWT_EXPIRATION_TIME,
+        },
       }),
-      inject: [ConfigService], // Injeta o ConfigService na factory
     }),
   ],
-  controllers: [AuthController],
+  controllers: [],
   providers: [
+    // 1. Serviço de Autenticação
     AuthService,
-    // Registra a Strategy e o Guard para o Passport.
-    JwtStrategy, 
-    JwtAuthGuard,
+    // 2. Estratégias de Autenticação
+    LocalStrategy, // Validação de login (email/senha)
+    JwtStrategy,   // Validação de token
   ],
   exports: [
-    AuthService, 
-    JwtModule, 
-    JwtAuthGuard
+    // Exportamos o JwtModule, PassportModule e o AuthService
+    JwtModule,
+    PassportModule,
+    AuthService, // Exportado para testes ou uso em outros módulos de domínio.
   ],
 })
 export class AuthModule {}

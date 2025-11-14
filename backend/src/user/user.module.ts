@@ -1,17 +1,16 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './user.service';
-import { UserController } from './user.controller';
-import { TypeOrmModule } from '@nestjs/typeorm'; // Importação do TypeORM
-import { User } from './user.entity'; // Importação da Entidade User
+import { User } from './entities/user.entity';
 
 @Module({
   imports: [
-    // Registra a Entidade User para injeção de repositório neste módulo
-    TypeOrmModule.forFeature([User]), 
+    // Registra a UserEntity no TypeORM para que o repositório possa ser injetado.
+    TypeOrmModule.forFeature([User]),
   ],
-  controllers: [UserController],
+  controllers: [], // O UserController será adicionado posteriormente se houver endpoints de usuário não-autenticados.
   providers: [UserService],
-  // Exportar UserService e o Repositório de User é CRÍTICO
-  exports: [UserService, TypeOrmModule.forFeature([User])], 
+  // Exportamos o UserService para que outros módulos (especialmente o AuthModule) possam utilizá-lo.
+  exports: [UserService],
 })
 export class UserModule {}

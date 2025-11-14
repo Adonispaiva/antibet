@@ -1,73 +1,92 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-  ParseUUIDPipe,
-  HttpCode,
-  HttpStatus,
+// backend/src/goals/goals.controller.ts
+
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Patch, 
+  Param, 
+  Delete, 
+  UseGuards, 
+  Req, 
+  ParseIntPipe 
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
 import { GoalsService } from './goals.service';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
+import { User } from '../user/entities/user.entity'; // A Entidade de Usuário
 
-@UseGuards(JwtAuthGuard) // Protege todas as rotas de Metas
+/**
+ * Interface customizada para a requisição com o objeto User injetado pelo JwtStrategy.
+ */
+interface RequestWithUser extends Request {
+  user: User;
+}
+
 @Controller('goals')
+@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controller
 export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
   /**
-   * Rota para criar uma nova meta.
+   * Cria uma nova meta para o usuário logado.
    */
   @Post()
-  @HttpCode(HttpStatus.CREATED)
   create(
-    @Req() req: AuthenticatedRequest,
     @Body() createGoalDto: CreateGoalDto,
+    @Req() req: RequestWithUser,
   ) {
-    const userId = req.user.userId;
-    return this.goalsService.createGoal(userId, createGoalDto);
+    const userId = req.user.id;
+    return this.goalsService.create(createGoalDto, userId);
   }
 
   /**
-   * Rota para buscar todas as metas do usuário logado.
+   * Lista todas as metas do usuário logado.
    */
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    const userId = req.user.userId;
-    return this.goalsService.findGoalsByUserId(userId);
+  findAll(@Req() req: RequestWithUser) {
+    const userId = req.user.id;
+    return this.goalsService.findAll(userId);
   }
 
   /**
-   * Rota para atualizar uma meta (ex: marcar como concluída).
+   * Obtém uma meta específica pelo ID.
+   */
+  @Get(':id')
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+  ) {
+    const userId = req.user.id;
+    return this.goalsService.findOne(id, userId);
+  }
+
+  /**
+   * Atualiza uma meta específica.
    */
   @Patch(':id')
   update(
-    @Req() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) goalId: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateGoalDto: UpdateGoalDto,
+    @Req() req: RequestWithUser,
   ) {
-    const userId = req.user.userId;
-    return this.goalsService.updateGoal(userId, goalId, updateGoalDto);
+    const userId = req.user.id;
+    return this.goalsService.update(id, updateGoalDto, userId);
   }
 
   /**
-   * Rota para deletar uma meta.
+   * Remove uma meta específica.
    */
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   remove(
-    @Req() req: AuthenticatedRequest,
-    @Param('id', ParseUUIDPipe) goalId: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
   ) {
-    const userId = req.user.userId;
-    return this.goalsService.deleteGoal(userId, goalId);
+    const userId = req.user.id;
+    return this.goalsService.remove(id, userId);
   }
 }

@@ -1,46 +1,63 @@
+// backend/src/app.module.ts
+
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+// Importação do Módulo de Configuração Customizado
+import { AppConfigurationModule } from './config/config.module';
+import { AppConfigService } from './config/app-config.service';
+
+// Importação de todos os Módulos de Feature
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { AiChatModule } from './ai-chat/ai-chat.module';
 import { PlansModule } from './plans/plans.module';
 import { PaymentsModule } from './payments/payments.module';
-
-// --- NOVO: TypeORM ---
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
-// O PlansModule também usará uma entidade, que idealmente seria registrada aqui.
+import { JournalModule } from './journal/journal.module';
+import { StrategyModule } from './strategy/strategy.module';
+import { GoalsModule } from './goals/goals.module';
+import { NotificationModule } from './notification/notification.module';
+import { AiChatModule } from './ai-chat/ai-chat.module';
 
 @Module({
   imports: [
-    // 1. Configuração de Variáveis de Ambiente
-    ConfigModule.forRoot({ isGlobal: true }),
+    // 1. Importa o Módulo de Configuração Central
+    AppConfigurationModule,
 
-    // 2. Configuração do Banco de Dados (TypeORM)
-    TypeOrmModule.forRoot({
-      // Usaremos Postgre em produção, mas SQLite ou stub para desenvolvimento:
-      type: 'postgres', // Substitua por 'sqlite' para ambiente local sem DB
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT, 10) || 5432,
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      database: process.env.DB_DATABASE || 'antibet_db',
-      
-      entities: [User], // Registra a entidade User
-      // O ideal é usar `synchronize: false` em produção e migrações.
-      synchronize: true, // Auto-criação de tabelas para desenvolvimento
-      autoLoadEntities: true, // Carrega entidades automaticamente
-      ssl: process.env.NODE_ENV === 'production',
+    // 2. Conexão com o Banco de Dados (TypeORM)
+    TypeOrmModule.forRootAsync({
+      // O AppConfigService já é exportado pelo AppConfigurationModule
+      imports: [AppConfigurationModule], 
+      // Injeta o AppConfigService
+      inject: [AppConfigService], 
+
+      useFactory: (appConfigService: AppConfigService) => ({
+        type: 'postgres',
+        host: appConfigService.DB_HOST,
+        port: appConfigService.DB_PORT,
+        username: appConfigService.DB_USERNAME,
+        password: appConfigService.DB_PASSWORD,
+        database: appConfigService.DB_DATABASE,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+      }),
     }),
-    
+
     // 3. Módulos de Feature
     AuthModule,
     UserModule,
-    AiChatModule,
     PlansModule,
     PaymentsModule,
+    JournalModule,
+    StrategyModule,
+    GoalsModule,
+    NotificationModule,
+    AiChatModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  // Apenas o AppService é necessário, pois o AppConfigService agora
+  // é provido e exportado pelo AppConfigurationModule.
+  providers: [AppService], 
 })
 export class AppModule {}
