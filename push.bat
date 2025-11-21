@@ -1,20 +1,9 @@
 @echo off
 REM
 REM === ORION: SCRIPT DE GIT PUSH AUTOMATIZADO ===
-REM Versão: 1.6 - Solução de Contorno de Fechamento de Console (CMD /K)
+REM Versão: 1.5 - Maxima Robustez de Console (Timeout + Pause)
 REM
 TITLE GIT PUSH - AntiBet - Inovexa Software
-
-REM === VERIFICACAO DE AMBIENTE: FORCA O CONSOLE A PERMANECER ABERTO ===
-if /i not "%~1"=="RUN_INTERNAL" (
-    echo.
-    echo 🚀 Iniciando execucao em console persistente...
-    cmd /k "%~dpnx0" RUN_INTERNAL
-    exit /b 0
-)
-
-REM Remove a flag interna para que o restante do script use os parametros corretos.
-shift
 
 REM Pede a mensagem de commit
 set /p commit_msg="Digite a mensagem de commit (Ex: FEAT: Nova feature de login): "
@@ -84,4 +73,7 @@ echo.
 echo ==============================================================
 echo | EXECUCAO CONCLUIDA. AGUARDE 5s OU PRESSIONE UMA TECLA. |
 echo ==============================================================
-REM Removendo pause e timeout, pois o CMD /K ja garante que o console fique aberto.
+timeout /t 5
+echo.
+echo Pressione qualquer tecla para fechar...
+pause
