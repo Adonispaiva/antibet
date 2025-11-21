@@ -1,7 +1,7 @@
 @echo off
 REM
 REM === ORION: SCRIPT DE GIT PUSH AUTOMATIZADO ===
-REM Versão: 1.4 - Otimizado para máxima garantia de que o console permaneça aberto.
+REM Versão: 1.5 - Maxima Robustez de Console (Timeout + Pause)
 REM
 TITLE GIT PUSH - AntiBet - Inovexa Software
 
@@ -69,6 +69,11 @@ goto FINAL_WAIT
 
 :FINAL_WAIT
 REM Esta label garante que a janela sempre pausa, independente do resultado.
+echo.
+echo ==============================================================
+echo | EXECUCAO CONCLUIDA. AGUARDE 5s OU PRESSIONE UMA TECLA. |
+echo ==============================================================
+timeout /t 5
 echo.
 echo Pressione qualquer tecla para fechar...
 pause
