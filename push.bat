@@ -3,7 +3,7 @@ SETLOCAL
 
 REM
 REM === ORION: SCRIPT DE GIT PUSH AUTOMATIZADO ===
-REM Versão: 1.2 - Otimizado para observabilidade e segurança de dados.
+REM Versão: 1.3 - Otimizado para observabilidade e fluxo de controle robusto.
 REM
 TITLE GIT PUSH - AntiBet - Inovexa Software
 
@@ -14,7 +14,7 @@ REM Verifica se a mensagem de commit foi fornecida
 if "%commit_msg%"=="" (
     echo.
     echo 🚨 ERRO: A mensagem de commit nao pode ser vazia!
-    goto end
+    goto ERROR_HANDLER
 )
 
 echo.
@@ -25,7 +25,7 @@ git add .
 if %errorlevel% neq 0 (
     echo.
     echo ❌ Falha ao executar 'git add .'. Verifique se esta no diretorio Git.
-    goto end
+    goto ERROR_HANDLER
 )
 
 echo.
@@ -36,7 +36,7 @@ git commit -m "%commit_msg%"
 if %errorlevel% neq 0 (
     echo.
     echo ⚠️ ATENCAO: Nenhum arquivo para commit OU falha ao commitar.
-    REM Continua, pois "nothing to commit" ainda e 0, mas queremos ser explicitos.
+    REM Continua (nothing to commit ainda e um sucesso leve, nao um erro critico de infra)
 )
 
 echo.
@@ -48,7 +48,7 @@ git pull --rebase
 if %errorlevel% neq 0 (
     echo.
     echo ❌ Falha ao executar 'git pull --rebase'. Verifique sua conexao ou remote.
-    goto end
+    goto ERROR_HANDLER
 )
 
 echo.
@@ -61,14 +61,22 @@ if %errorlevel% neq 0 (
     echo 🔴 ERRO CRITICO: O comando 'git push' falhou.
     echo ➡️ Solucao: Verifique se o seu "remote" esta configurado corretamente (git remote -v).
     echo ➡️ Solucao: Tente executar "git push --set-upstream origin master" (ou main).
-    goto end
+    goto ERROR_HANDLER
 )
 
+REM --- FLUXO DE SUCESSO (Cai aqui se tudo deu certo) ---
 echo.
 echo ✅ SUCESSO! O codigo foi enviado para o GitHub.
 echo.
+goto WAIT_FOR_USER
 
-:end
+:ERROR_HANDLER
+REM --- FLUXO DE ERRO (Jumps aqui) ---
+echo.
+echo 🚨 A execucao do script falhou devido a um erro critico.
+echo ⚠️ Por favor, revise o log acima.
+
+:WAIT_FOR_USER
 echo.
 pause
 ENDLOCAL
