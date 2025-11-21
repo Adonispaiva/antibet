@@ -3,7 +3,7 @@ SETLOCAL
 
 REM
 REM === ORION: SCRIPT DE GIT PUSH AUTOMATIZADO ===
-REM Versão: 1.1 - Otimizado para robustez e segurança de dados.
+REM Versão: 1.2 - Otimizado para observabilidade e segurança de dados.
 REM
 TITLE GIT PUSH - AntiBet - Inovexa Software
 
