@@ -1,22 +1,20 @@
-// mobile/lib/features/auth/screens/login_screen.dart
-
-import 'package:antibet/features/auth/notifiers/auth_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:antibet/core/ui/feedback_manager.dart';
+import 'package:antibet/features/auth/providers/auth_provider.dart';
+import 'package:antibet/features/journal/screens/journal_screen.dart'; // Tela de destino após o login
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController(text: 'teste@inovexa.com.br');
+  final _passwordController = TextEditingController(text: 'senha123');
   final _formKey = GlobalKey<FormState>();
-
-  String? _errorMessage;
 
   @override
   void dispose() {
@@ -25,133 +23,124 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Tenta realizar o login chamando o AuthNotifier.
-  Future<void> _attemptLogin() async {
-    if (!_formKey.currentState!.validate()) {
+  void _submitLogin() async {
+    if (_formKey.currentState?.validate() != true) {
       return;
     }
-    
-    // Limpa erros antigos
-    setState(() {
-      _errorMessage = null;
-    });
 
-    // Acessa o Notifier (sem 'watch' no método)
-    final authNotifier = context.read<AuthNotifier>();
-    
-    final success = await authNotifier.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    // O estado de loading será refletido pelo watch/listen abaixo
+    final notifier = ref.read(authProvider.notifier);
 
-    if (!success && mounted) {
-      setState(() {
-        _errorMessage = 'Falha no login. Verifique seu e-mail ou senha.';
-      });
+    try {
+      // Chama o método de login. O Notifier lida com o AsyncValue.loading/error/data
+      await notifier.login(_emailController.text.trim(), _passwordController.text.trim());
+      
+      // O ref.listen abaixo lidará com a navegação em caso de sucesso
+      
+    } catch (e) {
+      // O AuthNotifier re-lança uma exceção genérica ('Login falhou.') para esta camada capturar
+      FeedbackManager.showError(context, 'Falha no Login. Verifique suas credenciais.');
     }
-    // Se 'success' for true, o AuthWrapper (em main.dart) 
-    // detectará a mudança no 'isAuthenticated' e navegará automaticamente.
   }
 
   @override
   Widget build(BuildContext context) {
-    // Escuta o 'isLoading' do Notifier
-    final isLoading = context.watch<AuthNotifier>().isLoading;
+    // Observa o estado de autenticação para gerenciar a navegação
+    ref.listen<AsyncValue>(authProvider, (previous, next) {
+      next.whenOrNull(
+        data: (user) {
+          // Navega apenas se o login foi bem-sucedido (UserModel não é nulo)
+          if (user != null) {
+            // Usa pushReplacement para que o usuário não possa voltar à tela de login
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const JournalScreen()),
+            );
+          }
+        },
+        // O tratamento de erro já foi feito no try-catch do _submitLogin
+      );
+    });
+
+    // Observa o estado de loading para desabilitar o botão
+    final authStatus = ref.watch(authProvider);
+    final isLoading = authStatus.isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.blue, // Fundo alinhado com o Splash
+      appBar: AppBar(
+        title: const Text('Login - AntiBet'),
+        automaticallyImplyLeading: false, // Login geralmente é a raiz
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Logo (Placeholder)
-                    const Icon(
-                      Icons.shield,
-                      size: 60,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'AntiBet Login',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Campo de Email
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => (value == null || !value.contains('@'))
-                          ? 'Por favor, insira um email válido.'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Campo de Senha
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Senha',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => (value == null || value.length < 6)
-                          ? 'A senha deve ter pelo menos 6 caracteres.'
-                          : null,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Mensagem de Erro
-                    if (_errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    
-                    // Botão de Login
-                    isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                            onPressed: _attemptLogin,
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text('Entrar', style: TextStyle(fontSize: 16)),
-                          ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Link para Registro (Placeholder)
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Implementar navegação para a Tela de Registro
-                      },
-                      child: const Text('Não tem uma conta? Registre-se'),
-                    ),
-                  ],
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Acesse sua conta',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
                 ),
-              ),
+                const SizedBox(height: 40),
+                
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'E-mail',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  validator: (value) {
+                    if (value == null || !value.contains('@')) {
+                      return 'Por favor, insira um e-mail válido.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Senha',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.length < 6) {
+                      return 'A senha deve ter pelo menos 6 caracteres.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 40),
+                
+                ElevatedButton(
+                  onPressed: isLoading ? null : _submitLogin,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Entrar', style: TextStyle(fontSize: 18)),
+                ),
+                const SizedBox(height: 20),
+                
+                // Exemplo de link para tela de registro futura
+                TextButton(
+                  onPressed: () {
+                    // TODO: Implementar navegação para a tela de Registro
+                  },
+                  child: const Text('Não tem conta? Registre-se'),
+                ),
+              ],
             ),
           ),
         ),

@@ -1,119 +1,78 @@
-// backend/src/strategy/strategy.service.ts
-
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Strategy } from './entities/strategy.entity';
-import { CreateStrategyDto } from './dto/create-strategy.dto';
-import { UpdateStrategyDto } from './dto/update-strategy.dto';
+import { User } from '../../user/entities/user.entity';
 
 @Injectable()
-export class StrategyService {
+export class StrategiesService {
   constructor(
     @InjectRepository(Strategy)
     private readonly strategyRepository: Repository<Strategy>,
   ) {}
 
   /**
-   * Cria uma nova estratégia, garantindo que o nome seja único para o usuário.
-   * @param createStrategyDto Os dados validados da estratégia.
-   * @param userId O ID do usuário logado.
-   * @returns A entidade de Strategy salva.
+   * Cria uma nova estratégia para um usuário.
+   * @param user O objeto do usuário que está criando a estratégia.
+   * @param createStrategyDto DTO contendo o nome, foco, risco, etc.
+   * @returns A nova estratégia.
    */
-  async create(createStrategyDto: CreateStrategyDto, userId: number): Promise<Strategy> {
-    // 1. Verifica se já existe uma estratégia com o mesmo nome para este usuário
-    const existingStrategy = await this.strategyRepository.findOne({
-      where: { name: createStrategyDto.name, userId },
-    });
-
-    if (existingStrategy) {
-      throw new ConflictException(
-        `Já existe uma estratégia com o nome "${createStrategyDto.name}" para este usuário.`,
-      );
-    }
-
-    // 2. Cria e salva
+  async createStrategy(user: User, createStrategyDto: any): Promise<Strategy> {
     const newStrategy = this.strategyRepository.create({
       ...createStrategyDto,
-      userId,
+      user: user,
+      userId: user.id,
     });
-
+    
     return this.strategyRepository.save(newStrategy);
   }
 
   /**
-   * Obtém todas as estratégias do usuário logado.
-   * @param userId O ID do usuário logado.
-   * @returns Uma lista de estratégias.
+   * Retorna todas as estratégias de um usuário específico.
+   * @param userId O ID do usuário.
+   * @returns Lista de estratégias.
    */
-  async findAll(userId: number): Promise<Strategy[]> {
-    // Retorna todas as estratégias, ordenadas por nome.
+  async findAllUserStrategies(userId: string): Promise<Strategy[]> {
     return this.strategyRepository.find({
-      where: { userId },
-      order: { name: 'ASC' },
+      where: { userId: userId, isActive: true },
+      order: { createdAt: 'DESC' },
     });
   }
 
   /**
-   * Obtém uma estratégia específica pelo ID, garantindo que pertença ao usuário logado.
-   * @param id O ID da estratégia.
-   * @param userId O ID do usuário logado.
-   * @returns A entidade de Strategy.
-   * @throws NotFoundException se não existir ou não pertencer ao usuário.
+   * Encontra uma estratégia pelo ID e verifica a posse.
+   * @param id ID da estratégia.
+   * @param userId ID do usuário logado.
+   * @returns A estratégia, se pertencer ao usuário.
    */
-  async findOne(id: number, userId: number): Promise<Strategy> {
+  async findOneStrategy(id: string, userId: string): Promise<Strategy> {
     const strategy = await this.strategyRepository.findOne({
-      where: { id, userId },
+      where: { id: id, userId: userId },
     });
-
+    
     if (!strategy) {
-      throw new NotFoundException(`Estratégia com ID "${id}" não encontrada.`);
+      throw new NotFoundException('Estrategia nao encontrada ou nao pertence a este usuario.');
     }
     return strategy;
   }
 
   /**
-   * Atualiza uma estratégia específica, garantindo a posse e a unicidade do nome.
-   * @param id O ID da estratégia.
-   * @param updateStrategyDto Os dados a serem atualizados.
-   * @param userId O ID do usuário logado.
-   * @returns A entidade de Strategy atualizada.
+   * Atualiza uma estratégia existente.
    */
-  async update(
-    id: number,
-    updateStrategyDto: UpdateStrategyDto,
-    userId: number,
-  ): Promise<Strategy> {
-    const strategy = await this.findOne(id, userId); // findOne já verifica a posse
-
-    // 1. Verifica a unicidade do nome, se ele for alterado
-    if (updateStrategyDto.name && updateStrategyDto.name !== strategy.name) {
-      const existingStrategy = await this.strategyRepository.findOne({
-        where: { name: updateStrategyDto.name, userId },
-      });
-
-      if (existingStrategy) {
-        throw new ConflictException(
-          `Já existe outra estratégia com o nome "${updateStrategyDto.name}" para este usuário.`,
-        );
-      }
-    }
-
-    // 2. Aplica as atualizações do DTO e salva
-    Object.assign(strategy, updateStrategyDto);
-    return this.strategyRepository.save(strategy);
+  async updateStrategy(strategy: Strategy, updateStrategyDto: any): Promise<Strategy> {
+    const updatedStrategy = this.strategyRepository.merge(strategy, updateStrategyDto);
+    return this.strategyRepository.save(updatedStrategy);
   }
 
   /**
-   * Remove uma estratégia específica, garantindo a posse.
-   * @param id O ID da estratégia.
-   * @param userId O ID do usuário logado.
+   * Remove (desativa) uma estratégia.
+   * Não deletamos o registro, apenas marcamos como inativo.
    */
-  async remove(id: number, userId: number): Promise<void> {
-    const result = await this.strategyRepository.delete({ id, userId });
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`Estratégia com ID "${id}" não encontrada ou não pertence ao usuário.`);
-    }
+  async removeStrategy(id: string, userId: string): Promise<void> {
+    const strategy = await this.findOneStrategy(id, userId);
+    
+    // Marcar como inativo em vez de deletar para manter o historico
+    strategy.isActive = false;
+    await this.strategyRepository.save(strategy);
   }
 }

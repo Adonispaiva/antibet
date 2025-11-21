@@ -1,16 +1,41 @@
-# antibet_mobile
+# AntiBet (Mobile) 🌌
 
-A new Flutter project.
+> **Versão:** 1.0.0 (MVP Funcional)
+> **Status:** Fase II Concluída (Integração API & CRUD)
+> **Arquitetura:** Clean Architecture + Riverpod
 
-## Getting Started
+## 📋 Sobre o Projeto
 
-This project is a starting point for a Flutter application.
+O **AntiBet** é uma aplicação móvel projetada para auxiliar usuários no controle e gestão de apostas, oferecendo ferramentas de diário (Journal), monitoramento de estatísticas financeiras e prevenção de perdas.
 
-A few resources to get you started if this is your first Flutter project:
+Esta versão **MVP (Mínimo Produto Viável)** foca na integridade dos dados e no fluxo completo de Criação, Leitura, Atualização e Exclusão (CRUD) de entradas no diário.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🛠️ Tech Stack & Decisões Arquiteturais
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+O projeto segue rigorosos padrões de engenharia de software para garantir escalabilidade e manutenibilidade.
+
+- **Linguagem:** Dart 3.x
+- **Framework:** Flutter 3.16+
+- **Gerenciamento de Estado:** `flutter_riverpod` (Reatividade e Injeção de Dependência Segura)
+- **Networking:** `dio` (com Interceptors personalizados para Auth e Logging)
+- **Persistência Local:** `shared_preferences` (Gestão de Sessão/Tokens)
+- **Serialização:** `json_serializable` & `json_annotation`
+- **Testes:** `mockito`, `flutter_test`, `integration_test`
+
+### Estrutura de Pastas (Clean Architecture)
+
+lib/ ├── core/ # Camada de Infraestrutura e Utils │ ├── network/ # Configuração Dio, Interceptors │ └── ui/ # FeedbackManager, Temas ├── features/ # Módulos Funcionais (DDD) │ ├── auth/ # Autenticação (Login, Perfil) │ └── journal/ # Diário (Listagem, CRUD, Stats) └── main.dart # Entry Point & App Wrapper
+
+
+## 🚀 Configuração e Execução
+
+### Pré-requisitos
+- Flutter SDK instalado e configurado no PATH.
+- Emulador Android/iOS ou dispositivo físico conectado.
+
+### Instalação
+
+1. **Clonar o repositório:**
+   ```bash
+   git clone [https://github.com/Adonispaiva/antibet.git](https://github.com/Adonispaiva/antibet.git)
+   cd antibet/mobile

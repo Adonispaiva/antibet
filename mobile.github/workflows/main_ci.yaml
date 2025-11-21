@@ -1,0 +1,43 @@
+name: Flutter CI / Build e Testes
+
+# Dispara o workflow quando há um push ou pull request para o branch principal
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    # O ambiente de execução
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4 # 1. Faz o checkout do código
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.x' # Versão estável compatível com o pubspec.yaml
+          channel: 'stable'
+
+      - name: 2. Obter Dependências (flutter pub get)
+        run: flutter pub get
+
+      - name: 3. Analisar Código (flutter analyze)
+        run: flutter analyze
+
+      - name: 4. Executar Testes Unitários e de Integração
+        # Executa todos os testes na pasta 'test', incluindo o de integração CRUD
+        run: flutter test
+
+      - name: 5. Construir APK (Check de Deployment)
+        # Verifica se o projeto consegue compilar para Android (artefato de build)
+        run: flutter build apk --release
+        
+      # Opcional: Upload do artefato de build para revisão
+      - uses: actions/upload-artifact@v4
+        with:
+          name: antibet-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Conclusão: Se todos os passos passarem, o código está pronto para merge/release.

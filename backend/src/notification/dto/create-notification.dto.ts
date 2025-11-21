@@ -1,25 +1,35 @@
-// backend/src/notification/dto/create-notification.dto.ts
-
-import { IsNotEmpty, IsString, MaxLength, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsEnum,
+  IsJSON,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { NotificationType } from '../entities/notification.entity';
 
 /**
- * Data Transfer Object (DTO) para a criação de uma nova notificação para o usuário.
- * * Este DTO é usado tipicamente pela camada de Serviço para registrar um novo alerta 
- * que será exibido no Mobile.
+ * Data Transfer Object (DTO) para criar uma nova notificação.
+ * (Usado principalmente por services internos, não por endpoints públicos).
  */
 export class CreateNotificationDto {
-  @IsNotEmpty({ message: 'O título da notificação é obrigatório.' })
-  @IsString({ message: 'O título deve ser uma string.' })
-  @MaxLength(100)
+  @IsUUID('4', { message: 'O ID do destinatario deve ser um UUID valido.' })
+  @IsNotEmpty({ message: 'O ID do destinatario (recipientId) e obrigatorio.' })
+  recipientId: string;
+
+  @IsString({ message: 'O titulo deve ser um texto.' })
+  @IsNotEmpty({ message: 'O titulo e obrigatorio.' })
   title: string;
 
-  @IsNotEmpty({ message: 'A mensagem da notificação é obrigatória.' })
-  @IsString({ message: 'A mensagem deve ser uma string.' })
-  @MaxLength(500)
+  @IsString({ message: 'A mensagem deve ser um texto.' })
+  @IsNotEmpty({ message: 'A mensagem e obrigatoria.' })
   message: string;
 
+  @IsEnum(NotificationType, { message: 'Tipo de notificacao invalido.' })
   @IsOptional()
-  @IsBoolean({ message: 'O status de leitura deve ser um booleano.' })
-  // Opcional, pois na criação é esperado que seja 'false', mas tipado para segurança.
-  isRead?: boolean; 
+  type?: NotificationType;
+
+  @IsJSON({ message: 'Os metadados devem ser um JSON valido.' })
+  @IsOptional()
+  metadata?: any;
 }

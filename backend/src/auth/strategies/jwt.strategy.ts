@@ -1,31 +1,39 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { UserService } from '../../user/user.service';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { AppConfigService } from '../../config/app-config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private userService: UserService,
-    configService: ConfigService,
+    private readonly configService: AppConfigService,
   ) {
     super({
+      // Define como o token será extraído da requisição:
+      // Padrão: 'Authorization: Bearer <token>'
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      
+      // Ignora a expiração se o token estiver expirado (false = não ignora)
       ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET'), // Obtém o segredo do .env
+      
+      // A chave secreta usada para verificar a assinatura do token
+      secretOrKey: configService.JWT_SECRET,
     });
   }
 
-  // Validação: Este método é chamado após o token ser validado
-  async validate(payload: { sub: string; email: string }) {
-    // payload.sub é o ID do usuário (definido no AuthService)
-    const user = await this.userService.findProfile(payload.sub); 
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    // Retorna o usuário logado (disponível em req.user)
-    return user; 
+  /**
+   * Este método é chamado pelo Passport após o token ser
+   * verificado (assinatura e expiração).
+   * O payload é o objeto que foi codificado no AuthService.
+   * @param payload O conteúdo decodificado do token JWT.
+   * @returns O objeto que será anexado ao request.user
+   */
+  async validate(payload: any) {
+    // O Passport anexará este retorno ao request.user
+    return { 
+      userId: payload.sub, 
+      email: payload.email, 
+      role: payload.role 
+    };
   }
 }

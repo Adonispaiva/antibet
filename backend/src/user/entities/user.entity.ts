@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
-import { JournalEntry } from '../../journal/entities/journal-entry.entity'; // Assumindo o caminho correto
+import { JournalEntry } from '../../journal/entities/journal-entry.entity';
+import { Subscription } from '../../subscription/entities/subscription.entity';
 
 // Enum para definir os níveis de acesso (Roles)
 export enum UserRole {
@@ -43,10 +45,19 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  /**
+   * O ID de cliente no gateway de pagamento (ex: Stripe Customer ID).
+   * Essencial para vincular pagamentos e assinaturas a um cliente no gateway.
+   */
+  @Column({ unique: true, nullable: true, select: false })
+  stripeCustomerId: string;
+
   // Relações
-  // Um usuário pode ter múltiplas entradas de diário (JournalEntry)
   @OneToMany(() => JournalEntry, (entry) => entry.user)
   journalEntries: JournalEntry[];
+
+  @OneToOne(() => Subscription, (subscription) => subscription.user)
+  subscription: Subscription;
 
   // Campos de Controle
   @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })

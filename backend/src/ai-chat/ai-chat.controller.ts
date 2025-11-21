@@ -1,71 +1,50 @@
-// backend/src/ai-chat/ai-chat.controller.ts
-
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  UseGuards, 
-  Req, 
-  Param, 
-  ParseIntPipe,
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
 
 import { AiChatService } from './ai-chat.service';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
-import { AiChatResponseDto } from './dto/ai-chat-response.dto'; // DTO de Resposta
-import { User } from '../user/entities/user.entity'; // A Entidade de Usuário
+import { ChatMessage } from './entities/chat-message.entity';
 
-/**
- * Interface customizada para a requisição com o objeto User injetado pelo JwtStrategy.
- */
+// Interface para garantir o objeto user injetado pelo JwtStrategy
 interface RequestWithUser extends Request {
-  user: User;
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 }
 
-@Controller('ai-chat')
-@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controller
+@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controlador
+@Controller('ai-chat') // O nome do endpoint e padrao RESTful
 export class AiChatController {
   constructor(private readonly aiChatService: AiChatService) {}
 
   /**
-   * Endpoint Principal: Envia uma mensagem ao chat de IA e recebe a resposta.
+   * Envia uma nova mensagem do usuário para a IA e recebe a resposta.
+   * (POST /ai-chat)
    */
-  @Post('message')
+  @Post()
   async sendMessage(
-    @Body() createMessageDto: CreateChatMessageDto,
-    @Req() req: RequestWithUser,
-  ): Promise<AiChatResponseDto> {
-    const userId = req.user.id;
-    return this.aiChatService.sendMessage(createMessageDto, userId);
+    @Request() req: RequestWithUser,
+    @Body() createChatMessageDto: CreateChatMessageDto,
+  ): Promise<ChatMessage> {
+    const user = { id: req.user.userId } as any; // Objeto user simplificado
+    return this.aiChatService.processUserMessage(user, createChatMessageDto);
   }
 
   /**
-   * Lista todas as conversas do usuário (histórico).
-   * NOTE: O método findConversations deve ser implementado no AiChatService.
+   * Recupera o histórico de mensagens do usuário logado.
+   * (GET /ai-chat)
    */
-  @Get('conversations')
-  listConversations(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
-    // Omitido do Service para manter o foco no sendMessage, mas deve ser implementado.
-    // return this.aiChatService.findConversations(userId);
-    return []; // Retorno placeholder para método não implementado
-  }
-
-  /**
-   * Lista as mensagens de uma conversa específica.
-   * NOTE: O método findMessages deve ser implementado no AiChatService.
-   */
-  @Get('messages/:conversationId')
-  listMessages(
-    @Param('conversationId', ParseIntPipe) conversationId: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    // Omitido do Service para manter o foco no sendMessage, mas deve ser implementado.
-    // return this.aiChatService.findMessages(conversationId, userId);
-    return []; // Retorno placeholder para método não implementado
+  @Get()
+  async getHistory(@Request() req: RequestWithUser): Promise<ChatMessage[]> {
+    return this.aiChatService.getChatHistory(req.user.userId);
   }
 }

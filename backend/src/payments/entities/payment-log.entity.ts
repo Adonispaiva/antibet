@@ -1,49 +1,97 @@
-// backend/src/payments/entities/payment-log.entity.ts
-
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity'; // Assumindo a entidade do Usuário
+import { User } from '../../user/entities/user.entity';
 
 /**
- * Entidade que registra o log de todas as transações de pagamento e eventos de webhook.
- * * É a ferramenta de auditoria para rastrear o histórico financeiro e o status de cada cobrança.
+ * Status do Pagamento
  */
-@Entity('payment_logs')
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  REFUNDED = 'refunded',
+}
+
+/**
+ * Gateway de Pagamento (ex: Stripe, PagSeguro)
+ */
+export enum PaymentGateway {
+  STRIPE = 'stripe',
+  PAGSEGURO = 'pagseguro',
+  MERCADOPAGO = 'mercadopago',
+  MANUAL = 'manual',
+}
+
+/**
+ * Entidade para registrar todas as transacoes financeiras (logs).
+ * Isso e crucial para auditoria e gerenciamento de assinaturas.
+ */
+@Entity({ name: 'payment_logs' })
 export class PaymentLog {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  userId: number; // Chave estrangeira para o usuário
-
-  @ManyToOne(() => User) // Relação N:1 com a entidade User
-  @JoinColumn({ name: 'userId' })
+  /**
+   * O usuario que realizou o pagamento.
+   */
+  @ManyToOne(() => User, { nullable: false })
   user: User;
 
-  @Column({ length: 255, nullable: true })
-  gatewayTransactionId: string; // ID da transação no Gateway de Pagamento
+  @Column()
+  userId: string;
 
-  @Column({ length: 50 })
-  type: string; // Tipo de evento (Ex: 'charge.succeeded', 'invoice.payment_failed')
+  /**
+   * O ID da transacao no gateway de pagamento (ex: Stripe Checkout Session ID).
+   */
+  @Column({ unique: true })
+  transactionId: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  amount: number; // Valor da transação (usar decimal para precisão monetária)
+  @Column({
+    type: 'enum',
+    enum: PaymentGateway,
+    default: PaymentGateway.STRIPE,
+  })
+  gateway: PaymentGateway;
 
-  @Column({ length: 10 })
-  currency: string; // Moeda da transação (Ex: 'BRL', 'USD')
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
+  status: PaymentStatus;
 
-  @Column({ default: 'pending', length: 50 })
-  status: string; // Status da transação (Ex: 'succeeded', 'failed', 'refunded')
+  /**
+   * Valor pago (em centavos).
+   */
+  @Column({ type: 'int' })
+  amount: number;
 
-  @Column('jsonb', { nullable: true })
-  rawEventPayload: object; // O payload bruto (JSON) do webhook para auditoria completa
+  @Column({ default: 'BRL' })
+  currency: string;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  /**
+   * O ID do plano que foi comprado (referencia interna).
+   */
+  @Column({ nullable: true })
+  planId: string;
+
+  /**
+   * Armazena o evento bruto (raw payload) vindo do webhook do gateway.
+   * Essencial para debug e auditoria.
+   */
+  @Column({ type: 'jsonb', nullable: true })
+  gatewayPayload: any;
+
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
 }

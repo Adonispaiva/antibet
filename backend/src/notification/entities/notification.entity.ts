@@ -1,39 +1,63 @@
-// backend/src/notification/entities/notification.entity.ts
-
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity'; // Entidade do Usuário
+import { User } from '../../user/entities/user.entity';
 
 /**
- * Entidade que armazena notificações e alertas do sistema para usuários específicos.
+ * Define o tipo de notificacao (ex: Alerta de Meta, Pagamento, IA).
  */
-@Entity('notifications')
+export enum NotificationType {
+  GOAL_ALERT = 'goal_alert',
+  PAYMENT_STATUS = 'payment_status',
+  SYSTEM_UPDATE = 'system_update',
+  AI_RECOMMENDATION = 'ai_recommendation',
+  SUBSCRIPTION_END = 'subscription_end',
+}
+
+/**
+ * Entidade que armazena notificacoes destinadas a um usuario.
+ */
+@Entity({ name: 'notifications' })
 export class Notification {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  /**
+   * O usuario que deve receber a notificação.
+   */
+  @ManyToOne(() => User, { nullable: false })
+  recipient: User;
 
   @Column()
-  userId: number; // Chave estrangeira para o usuário
+  recipientId: string;
 
-  @ManyToOne(() => User, user => user.id) // Relação N:1 com a entidade User
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @Column({ length: 255, nullable: false })
+  title: string;
 
-  @Column({ length: 100 })
-  title: string; // Título da notificação
+  @Column({ type: 'text', nullable: false })
+  message: string;
 
-  @Column({ length: 500 })
-  message: string; // Conteúdo detalhado da notificação
+  @Column({
+    type: 'enum',
+    enum: NotificationType,
+    default: NotificationType.SYSTEM_UPDATE,
+  })
+  type: NotificationType;
+
+  /**
+   * Metadados opcionais (ex: link para o JournalEntry que disparou o alerta).
+   */
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: any;
 
   @Column({ default: false })
-  isRead: boolean; // Status de leitura (false = não lida)
+  isRead: boolean;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

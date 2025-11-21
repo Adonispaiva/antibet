@@ -1,104 +1,144 @@
-// mobile/lib/features/notifications/screens/notifications_screen.dart
-
-import 'package:antibet/features/notifications/models/notification_model.dart';
-import 'package:antibet/features/notifications/notifiers/notifications_notifier.dart';
 import 'package:flutter/material.dart';
-// Assumindo o uso de Provider/Riverpod para gerenciar o estado
-import 'package:provider/provider.dart'; 
-import 'package:intl/intl.dart'; // Para formatação de data (necessita do pacote intl)
+import 'package:auto_route/auto_route.dart';
+import 'package:get_it/get_it.dart';
+import 'package:antibet/features/notification/providers/notification_provider.dart';
+import 'package:antibet/features/shared/widgets/app_layout.dart'; // Importação do AppLayout
+import 'package:antibet/features/shared/widgets/empty_state_widget.dart'; // Importação do EmptyStateWidget
+import 'package:antibet/core/styles/app_colors.dart';
 
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
+
+// O decorator @RoutePage é exigido pelo auto_route
+@RoutePage()
+class NotificationScreen extends StatefulWidget {
+  const NotificationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Escuta as mudanças no NotificationsNotifier
-    final notifier = context.watch<NotificationsNotifier>();
-    final notifications = notifier.notifications;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notificações'),
-        centerTitle: true,
-        actions: [
-          if (notifier.unreadCount > 0)
-            TextButton(
-              onPressed: () => notifier.markAllAsRead(),
-              child: const Text(
-                'Marcar todas como lidas',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-        ],
-      ),
-      body: notifier.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : notifier.errorMessage != null
-              ? Center(child: Text('Erro: ${notifier.errorMessage}'))
-              : notifications.isEmpty
-                  ? const Center(
-                      child: Text('Você não tem notificações novas.'),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        final notification = notifications[index];
-                        return NotificationTile(
-                          notification: notification,
-                          onTap: () => notifier.markAsRead(notification.id!),
-                        );
-                      },
-                    ),
-    );
-  }
+  State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
-/// Widget reutilizável para exibir uma notificação individual.
-class NotificationTile extends StatelessWidget {
-  final NotificationModel notification;
-  final VoidCallback onTap;
+class _NotificationScreenState extends State<NotificationScreen> {
+  final NotificationProvider _notificationProvider = GetIt.I<NotificationProvider>();
 
-  const NotificationTile({
-    super.key,
-    required this.notification,
-    required this.onTap,
-  });
+  @override
+  void initState() {
+    super.initState();
+    // Dispara o carregamento inicial dos dados após o widget ser montado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationProvider.fetchNotifications();
+    });
+  }
+
+  /// Marca a notificação como lida ao ser tocada.
+  void _onNotificationTap(String notificationId, bool isRead) {
+    if (!isRead) {
+      _notificationProvider.markNotificationAsRead(notificationId);
+    }
+    // Adicionar lógica de navegação para o conteúdo relacionado
+  }
+
+  /// Deleta a notificação quando o item é arrastado.
+  Future<void> _onDismissed(String notificationId) async {
+     try {
+       await _notificationProvider.deleteNotification(notificationId);
+     } catch (e) {
+       // O erro é tratado no provider, mas a mensagem pode ser exibida
+       if(mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Falha ao deletar: ${e.toString()}')),
+         );
+       }
+     }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      color: notification.isRead ? Colors.white : Colors.blue.shade50,
-      child: ListTile(
-        leading: Icon(
-          notification.isRead ? Icons.notifications_none : Icons.notifications_active,
-          color: notification.isRead ? Colors.grey : Colors.blue,
-        ),
-        title: Text(
-          notification.title,
-          style: TextStyle(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(notification.message),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('dd/MM/yyyy HH:mm').format(notification.timestamp),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+    return ListenableBuilder(
+      listenable: _notificationProvider,
+      builder: (context, child) {
+        
+        final bool isLoading = _notificationProvider.isLoading && _notificationProvider.notifications.isEmpty;
+
+        Widget content;
+
+        // 2. Error State
+        if (_notificationProvider.errorMessage != null && _notificationProvider.notifications.isEmpty) {
+          content = EmptyStateWidget.error(
+            title: 'Erro ao Carregar',
+            subtitle: _notificationProvider.errorMessage,
+            action: ElevatedButton.icon(
+              onPressed: _notificationProvider.fetchNotifications,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Tentar Novamente'),
             ),
-          ],
-        ),
-        trailing: notification.isRead
-            ? null
-            : const Icon(Icons.circle, size: 10, color: Colors.blue), // Indicador de não lida
-        onTap: onTap,
-      ),
+          );
+        }
+        
+        // 3. Empty State
+        else if (_notificationProvider.notifications.isEmpty && !_notificationProvider.isLoading) {
+          content = EmptyStateWidget.noData(
+            title: 'Caixa de Entrada Vazia',
+            subtitle: 'Suas notificações do sistema e de trades aparecerão aqui.',
+          );
+        }
+        
+        // 4. Data Display
+        else {
+          content = ListView.builder(
+            itemCount: _notificationProvider.notifications.length,
+            itemBuilder: (context, index) {
+              final notification = _notificationProvider.notifications[index];
+              
+              return Dismissible(
+                key: ValueKey(notification.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  color: AppColors.failure,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: const Icon(Icons.delete, color: AppColors.textLight),
+                ),
+                onDismissed: (direction) {
+                  _onDismissed(notification.id);
+                },
+                child: ListTile(
+                  tileColor: notification.isRead ? AppColors.surfaceLight : AppColors.primaryBlue.withOpacity(0.05),
+                  leading: Icon(
+                    notification.isRead ? Icons.email_outlined : Icons.email,
+                    color: notification.isRead ? AppColors.textSecondary : AppColors.primaryBlue,
+                  ),
+                  title: Text(
+                    notification.title,
+                    style: TextStyle(fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold),
+                  ),
+                  subtitle: Text(notification.body),
+                  onTap: () => _onNotificationTap(notification.id, notification.isRead),
+                ),
+              );
+            },
+          );
+        }
+        
+        // Estrutura principal com AppLayout
+        return AppLayout(
+          appBar: AppBar(
+            title: const Text('Notificações'),
+            actions: [
+              // Botão opcional para marcar todas como lidas
+              IconButton(
+                icon: const Icon(Icons.mark_email_read),
+                onPressed: isLoading ? null : () {
+                  // _notificationProvider.markAllAsRead(); // Funcionalidade futura
+                },
+              ),
+            ],
+          ),
+          isLoading: isLoading,
+          child: Padding(
+            padding: EdgeInsets.zero, // Remove o padding horizontal para a lista
+            child: content,
+          ),
+        );
+      },
     );
   }
 }

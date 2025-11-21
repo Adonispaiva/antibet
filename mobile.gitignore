@@ -1,0 +1,45 @@
+# Created by https://www.toptal.com/developers/gitignore/api/flutter
+# Edit at https://www.toptal.com/developers/gitignore?templates=flutter
+
+### Flutter ###
+/build
+.dart_tool
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.vs/
+.vscode/
+/android/.gradle
+/android/local.properties
+/ios/.symlinks
+/ios/Flutter/Generated.xcconfig
+/ios/Pods/
+/web/install.html
+/web/flutter_bootstrap.js
+/web/version.json
+/lib/core/secrets/.env # Exemplo de arquivo de variáveis de ambiente/secrets
+
+# Arquivos gerados pelo build_runner (JSON serialization)
+**/*.g.dart
+
+# Dependencies
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/Flutter/flutter_assets
+/android/key.properties
+/android/keystore.jks
+
+# Logs
+*.log
+flutter_*.log
+
+# Windows
+Thumbs.db
+
+# macOS
+.DS_Store
+
+# IDEs
+.idea/
+
+### Flutter ###

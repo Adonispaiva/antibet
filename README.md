@@ -1,23 +1,25 @@
-# Projeto AntiBet (v0.1) - Inovexa Software
+# 🛡️ AntiBet - Diário e Controle Emocional de Apostas (MVP - Versão Mobile)
 
-Este é o repositório central (Monorepo) para o projeto AntiBet. Ele contém todos os artefatos relacionados ao desenvolvimento do aplicativo móvel, do backend (API) e da documentação do projeto.
+Este projeto implementa o Mínimo Produto Viável (MVP) do AntiBet, um aplicativo dedicado ao controle e gestão de apostas. A arquitetura foi desenvolvida com foco em segurança, escalabilidade e manutenibilidade.
 
-## 1. 🧭 Princípios de Direção (Orion)
+## ⚙️ Arquitetura e Stack Tecnológica
 
-1.  **Stack Aprovada:**
-    * **Frontend (Mobile):** Flutter (Dart)
-    * **Backend (API):** Node.js c/ TypeScript (NestJS)
-    * **Banco de Dados:** PostgreSQL
-2.  **Diretriz de Design (Acessibilidade Universal):**
-    * O aplicativo deve ser desenhado com foco absoluto na simplicidade, clareza e facilidade de uso. O objetivo é atender usuários de todas as classes sociais, culturais e níveis de letramento digital. A UI deve ser limpa, intuitiva e livre de jargões.
+O módulo `mobile` (Flutter) segue o padrão de **Clean Architecture** e **Service Layer** para desacoplamento de responsabilidades:
 
-## 2. ⚙️ Instruções de Setup (Estrutura de Pastas)
+* **Linguagem:** Dart (Flutter 3.x+)
+* **Gestão de Estado:** Riverpod (Provider/Notifier Pattern)
+* **Navegação:** GoRouter (Roteamento declarativo seguro)
+* **Rede/API:** Dio (com Interceptors para Segurança e Logs)
+* **Testes:** flutter_test, integration_test, mocktail (para testes unitários).
 
-Siga estas instruções para criar a estrutura de pastas local do projeto.
+A estrutura de pastas (`lib/features/{feature}/data | presentation`) separa claramente o UI (Widgets/Screens) da Lógica de Negócio (Providers) e da Camada de Dados (Services/Models).
 
-**Instrução 1: Navegue até a Pasta Raiz da Empresa**
+## 🚀 Como Executar o Projeto Mobile
 
-Abra seu terminal (CMD ou PowerShell) e navegue até o diretório `D:\projetos-inovexa\`.
+Para iniciar o projeto em seu ambiente de desenvolvimento:
+
+1.  **Pré-requisitos:** Certifique-se de ter o **Flutter SDK (3.x+)** e o **Dart SDK** instalados.
+2.  **Diretório:** Navegue até o diretório do projeto mobile.
 
 ```bash
-cd D:\projetos-inovexa
+cd D:\projetos-inovexa\antibet\mobile

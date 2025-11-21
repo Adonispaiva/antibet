@@ -1,38 +1,48 @@
-// backend/src/goals/dto/update-goal.dto.ts
-
-import { IsString, IsNumber, Min, IsDateString, MaxLength, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  IsDateString,
+  IsBoolean,
+} from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateGoalDto } from './create-goal.dto';
+import { GoalType } from '../entities/goal.entity';
 
 /**
- * Data Transfer Object (DTO) para a atualização parcial de uma meta (PATCH).
- * * Todos os campos são opcionais, permitindo ao usuário atualizar apenas uma parte 
- * da meta (ex: progresso atual ou status de conclusão).
+ * Data Transfer Object (DTO) para atualizar uma meta existente.
+ * Usa PartialType para tornar todos os campos de CreateGoalDto opcionais.
  */
-export class UpdateGoalDto {
+export class UpdateGoalDto extends PartialType(CreateGoalDto) {
+  @IsString({ message: 'O titulo da meta deve ser um texto.' })
   @IsOptional()
-  @IsString({ message: 'O título da meta deve ser uma string.' })
-  @MaxLength(100)
   title?: string;
 
+  @IsString({ message: 'A descricao deve ser um texto.' })
   @IsOptional()
-  @IsString({ message: 'A descrição deve ser uma string.' })
-  @MaxLength(500)
   description?: string;
 
+  @IsEnum(GoalType, { message: 'Tipo de meta invalido.' })
   @IsOptional()
-  @IsNumber({}, { message: 'O valor alvo deve ser um número.' })
-  @Min(0, { message: 'O valor alvo não pode ser negativo.' })
-  targetAmount?: number; // Ex: R$ 5000.00
+  type?: GoalType;
 
+  @IsNumber({}, { message: 'O valor alvo deve ser um numero.' })
+  @Min(0, { message: 'O valor alvo nao pode ser negativo.' })
   @IsOptional()
-  @IsDateString({}, { message: 'A data alvo deve ser uma string de data válida (ISO 8601).' })
-  targetDate?: string; // Ex: "2026-12-31"
+  targetValue?: number;
+  
+  @IsNumber({}, { message: 'O valor atual deve ser um numero.' })
+  @Min(0, { message: 'O valor atual nao pode ser negativo.' })
+  @IsOptional()
+  currentValue?: number; // Permite atualizar o progresso da meta
 
+  @IsDateString({}, { message: 'A data alvo (targetDate) deve ser uma string de data valida.' })
   @IsOptional()
-  @IsNumber({}, { message: 'O progresso atual deve ser um número.' })
-  @Min(0, { message: 'O progresso atual não pode ser negativo.' })
-  currentAmount?: number; // Progresso atual
+  targetDate?: string;
 
+  @IsBoolean({ message: 'isCompleted deve ser um booleano.' })
   @IsOptional()
-  @IsBoolean({ message: 'O status de conclusão deve ser um booleano.' })
-  isCompleted?: boolean; // Permite marcar a meta como concluída
+  isCompleted?: boolean;
 }

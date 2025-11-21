@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -37,8 +37,7 @@ export class UserService {
   
   /**
    * Encontra um usuário pelo email, incluindo o campo 'password'.
-   * Este método é crucial para a autenticação, permitindo que o AuthService
-   * acesse a senha hasheada para comparação.
+   * Crucial para a autenticação.
    */
   async findOneByEmail(email: string): Promise<User | undefined> {
     return this.userRepository
@@ -46,5 +45,21 @@ export class UserService {
       .addSelect('user.password') // Seleciona explicitamente o campo password
       .where('user.email = :email', { email })
       .getOne();
+  }
+
+  /**
+   * Atualiza o Role (nivel de acesso) de um usuario.
+   * Chamado pelo PaymentsService apos um pagamento bem-sucedido ou cancelamento.
+   * @param userId O ID do usuario a ser atualizado.
+   * @param newRole O novo UserRole (BASIC, PREMIUM, etc.)
+   */
+  async updateUserRole(userId: string, newRole: UserRole): Promise<User> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('Usuario nao encontrado para atualizacao de Role.');
+    }
+
+    user.role = newRole;
+    return this.userRepository.save(user);
   }
 }

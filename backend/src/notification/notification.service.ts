@@ -1,11 +1,9 @@
-// backend/src/notification/notification.service.ts
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { User } from '../../user/entities/user.entity';
+import { NotificationType } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationService {
@@ -15,84 +13,74 @@ export class NotificationService {
   ) {}
 
   /**
-   * Cria uma nova notificação para o usuário especificado (usado por outros serviços).
-   * @param createNotificationDto Os dados validados da notificação.
-   * @param userId O ID do usuário logado.
-   * @returns A entidade de Notification salva.
+   * Cria uma nova notificação para um usuário (geralmente chamada por outro service, ex: GoalsService).
+   * @param recipient O objeto do usuário que receberá a notificação.
+   * @param title O título da notificação.
+   * @param message A mensagem completa.
+   * @param type O tipo de notificação.
+   * @param metadata Dados adicionais.
+   * @returns A nova notificação.
    */
-  async create(
-    createNotificationDto: CreateNotificationDto,
-    userId: number,
+  async createNotification(
+    recipient: User,
+    title: string,
+    message: string,
+    type: NotificationType,
+    metadata: any = null,
   ): Promise<Notification> {
     const newNotification = this.notificationRepository.create({
-      ...createNotificationDto,
-      userId,
-      isRead: false, // Força 'não lida' na criação
+      recipient: recipient,
+      recipientId: recipient.id,
+      title: title,
+      message: message,
+      type: type,
+      metadata: metadata,
+      isRead: false,
     });
-
+    
     return this.notificationRepository.save(newNotification);
   }
 
   /**
-   * Obtém todas as notificações do usuário logado.
-   * @param userId O ID do usuário logado.
-   * @returns Uma lista de notificações, ordenada da mais recente para a mais antiga.
+   * Retorna todas as notificações de um usuário.
+   * @param recipientId O ID do usuário.
+   * @returns Lista de notificações.
    */
-  async findAll(userId: number): Promise<Notification[]> {
+  async findAllUserNotifications(recipientId: string): Promise<Notification[]> {
     return this.notificationRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
+      where: { recipientId: recipientId },
+      order: { createdAt: 'DESC' }, // Ordena da mais recente para a mais antiga
     });
   }
 
   /**
-   * Atualiza uma notificação específica (principalmente o status isRead), garantindo a posse.
-   * @param id O ID da notificação.
-   * @param updateNotificationDto Os dados a serem atualizados (ex: { isRead: true }).
-   * @param userId O ID do usuário logado.
-   * @returns A entidade de Notification atualizada.
+   * Marca uma notificação específica como lida.
+   * @param id ID da notificação.
+   * @param recipientId ID do usuário logado (para segurança).
+   * @returns A notificação atualizada.
    */
-  async update(
-    id: number,
-    updateNotificationDto: UpdateNotificationDto,
-    userId: number,
-  ): Promise<Notification> {
-    // Primeiro, verifica se a notificação existe e pertence ao usuário
+  async markAsRead(id: string, recipientId: string): Promise<Notification> {
     const notification = await this.notificationRepository.findOne({
-        where: { id, userId },
+      where: { id: id, recipientId: recipientId },
     });
-
+    
     if (!notification) {
-        throw new NotFoundException(`Notificação com ID "${id}" não encontrada ou não pertence ao usuário.`);
+      throw new NotFoundException('Notificacao nao encontrada ou nao pertence a este usuario.');
     }
-
-    // Aplica as atualizações do DTO e salva
-    Object.assign(notification, updateNotificationDto);
-    return this.notificationRepository.save(notification);
-  }
-  
-  /**
-   * Marca todas as notificações do usuário como lidas.
-   * @param userId O ID do usuário logado.
-   * @returns O resultado da operação de atualização em massa.
-   */
-  async markAllAsRead(userId: number): Promise<UpdateResult> {
-      return this.notificationRepository.update(
-          { userId, isRead: false }, // Condição: apenas as não lidas
-          { isRead: true } // O que será atualizado
-      );
+    
+    if (!notification.isRead) {
+      notification.isRead = true;
+      return this.notificationRepository.save(notification);
+    }
+    return notification;
   }
 
   /**
-   * Remove uma notificação específica, garantindo a posse.
-   * @param id O ID da notificação.
-   * @param userId O ID do usuário logado.
+   * Retorna a contagem de notificações nao lidas.
    */
-  async remove(id: number, userId: number): Promise<void> {
-    const result = await this.notificationRepository.delete({ id, userId });
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`Notificação com ID "${id}" não encontrada ou não pertence ao usuário.`);
-    }
+  async getUnreadCount(recipientId: string): Promise<number> {
+    return this.notificationRepository.count({
+      where: { recipientId: recipientId, isRead: false },
+    });
   }
 }

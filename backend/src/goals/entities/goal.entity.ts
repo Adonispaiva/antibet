@@ -1,55 +1,78 @@
-// backend/src/goals/entities/goal.entity.ts
-
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity'; // Entidade do Usuário
+import { User } from '../../user/entities/user.entity';
 
 /**
- * Entidade que registra os objetivos financeiros (metas) definidos pelo usuário.
+ * Define o tipo de meta (ex: Financeira, Emocional, Técnica).
  */
-@Entity('goals')
+export enum GoalType {
+  FINANCIAL = 'financial',
+  EMOTIONAL = 'emotional',
+  TECHNICAL = 'technical',
+  OTHER = 'other',
+}
+
+/**
+ * Entidade que armazena uma meta de trade/investimento definida pelo usuario.
+ */
+@Entity({ name: 'goals' })
 export class Goal {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  userId: number; // Chave estrangeira para o usuário
-
-  @ManyToOne(() => User, user => user.id) // Relação N:1 com a entidade User
-  @JoinColumn({ name: 'userId' })
+  /**
+   * O usuario dono desta meta.
+   */
+  @ManyToOne(() => User, { nullable: false })
   user: User;
 
-  @Column({ length: 100 })
+  @Column()
+  userId: string;
+
+  @Column({ length: 255, nullable: false })
   title: string;
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  targetAmount: number; // Valor alvo da meta (Ex: 5000.00)
+  @Column({
+    type: 'enum',
+    enum: GoalType,
+    default: GoalType.FINANCIAL,
+  })
+  type: GoalType;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0.0 })
-  currentAmount: number; // Progresso atual (pode ser atualizado pelo serviço)
+  /**
+   * Valor alvo (ex: R$ 5000, 50% de Win Rate).
+   */
+  @Column({ type: 'float', default: 0 })
+  targetValue: number;
 
-  @Column({ type: 'date' })
-  targetDate: Date; // Data limite para alcançar a meta
+  /**
+   * Valor atual (para rastreamento de progresso).
+   */
+  @Column({ type: 'float', default: 0 })
+  currentValue: number;
+
+  @Column({ type: 'date', nullable: true })
+  targetDate: Date;
 
   @Column({ default: false })
-  isCompleted: boolean; // Status de conclusão
+  isCompleted: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
-  completionDate: Date; // Data em que a meta foi atingida/concluída
+  @Column({ default: true })
+  isActive: boolean;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

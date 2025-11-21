@@ -1,32 +1,21 @@
-// backend/src/notification/notification.module.ts
-
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { Notification } from './entities/notification.entity';
 import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
-import { Notification } from './entities/notification.entity'; // A Entidade de Notificação
-import { AuthModule } from '../auth/auth.module'; // Dependência para segurança
-import { UserModule } from '../user/user.module'; // Dependência para User
+import { UserModule } from '../user/user.module'; // Necessario se o NotificationService for buscar dados do usuario
 
 @Module({
   imports: [
-    // 1. Importa a entidade Notification e TypeOrm
+    // Registra a entidade Notification no TypeORM
     TypeOrmModule.forFeature([Notification]),
-
-    // 2. Importa o AuthModule para proteção de rotas
-    forwardRef(() => AuthModule), 
-
-    // 3. Importa o UserModule
-    forwardRef(() => UserModule), 
+    // Opcionalmente, importar UserModule se o NotificationService interagir com o UserService
+    UserModule,
   ],
   controllers: [NotificationController],
-  providers: [
-    NotificationService, // Serviço de lógica de negócio de notificação
-  ],
-  exports: [
-    NotificationService, // Exporta o serviço para outros módulos (ex: para criar alertas)
-    TypeOrmModule, // Exporta o TypeOrmModule de notificação
-  ],
+  providers: [NotificationService],
+  // O NotificationService deve ser exportado caso o GoalsModule, PaymentsModule ou AiChatModule
+  // precise disparar novas notificações de forma interna.
+  exports: [NotificationService], 
 })
 export class NotificationModule {}

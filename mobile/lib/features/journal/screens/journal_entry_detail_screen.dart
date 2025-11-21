@@ -1,184 +1,162 @@
-// mobile/lib/features/journal/screens/journal_entry_detail_screen.dart
+import 'package:flutter/material.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 
 import 'package:antibet/features/journal/models/journal_entry_model.dart';
-import 'package:antibet/features/journal/notifiers/journal_notifier.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:antibet/features/journal/providers/journal_provider.dart';
+import 'package:antibet/features/shared/widgets/app_layout.dart'; // Importação do AppLayout
+import 'package:antibet/features/shared/widgets/action_separator.dart'; // Importação do ActionSeparator
 
-class JournalEntryDetailScreen extends StatefulWidget {
-  final JournalEntryModel entry;
 
-  const JournalEntryDetailScreen({super.key, required this.entry});
+// O decorator @RoutePage é exigido pelo auto_route
+@RoutePage()
+class JournalEntryDetailScreen extends StatelessWidget {
+  // O ID da entrada é um parâmetro obrigatório na rota
+  final String entryId; 
 
-  @override
-  State<JournalEntryDetailScreen> createState() => _JournalEntryDetailScreenState();
-}
-
-class _JournalEntryDetailScreenState extends State<JournalEntryDetailScreen> {
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-
-  // Controladores pré-preenchidos
-  late TextEditingController _strategyController;
-  late TextEditingController _stakeController;
-  late TextEditingController _finalResultController;
-  late TextEditingController _preAnalysisController;
-  late TextEditingController _postAnalysisController;
-
-  @override
-  void initState() {
-    super.initState();
-    // Inicializa os controladores com os dados da entrada recebida
-    _strategyController = TextEditingController(text: widget.entry.strategyName);
-    _stakeController = TextEditingController(text: widget.entry.stake.toStringAsFixed(2));
-    _finalResultController = TextEditingController(text: widget.entry.finalResult.toStringAsFixed(2));
-    _preAnalysisController = TextEditingController(text: widget.entry.preAnalysis);
-    _postAnalysisController = TextEditingController(text: widget.entry.postAnalysis ?? '');
-  }
-
-  @override
-  void dispose() {
-    _strategyController.dispose();
-    _stakeController.dispose();
-    _finalResultController.dispose();
-    _preAnalysisController.dispose();
-    _postAnalysisController.dispose();
-    super.dispose();
-  }
-
-  /// Tenta atualizar a entrada no diário.
-  Future<void> _submitUpdate() async {
-    if (!_formKey.currentState!.validate()) {
-      return; // Falha na validação
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Cria um novo modelo com os dados atualizados (baseado no ID da entrada original)
-      final updatedEntry = widget.entry.copyWith(
-        strategyName: _strategyController.text,
-        stake: double.parse(_stakeController.text),
-        finalResult: double.parse(_finalResultController.text),
-        preAnalysis: _preAnalysisController.text,
-        // Usa ValueGetter para permitir a passagem de null (se o campo for limpo)
-        postAnalysis: ValueGetter(() => 
-          _postAnalysisController.text.isEmpty ? null : _postAnalysisController.text
-        )(), 
-      );
-
-      // Acessa o Notifier
-      final journalNotifier = context.read<JournalNotifier>();
-      await journalNotifier.updateEntry(updatedEntry);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Entrada atualizada com sucesso!')),
-        );
-        Navigator.of(context).pop(); // Volta para a JournalScreen
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar entrada: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
+  const JournalEntryDetailScreen({super.key, required this.entryId});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Entrada'),
-        actions: [
-          _isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                )
-              : IconButton(
-                  icon: const Icon(Icons.save),
-                  onPressed: _submitUpdate,
-                  tooltip: 'Salvar Alterações',
-                ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _strategyController,
-                decoration: const InputDecoration(labelText: 'Estratégia Utilizada'),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'A estratégia é obrigatória.'
-                    : null,
+    final JournalProvider journalProvider = GetIt.I<JournalProvider>();
+    
+    // Procura a entrada na lista carregada no Provider
+    // Usamos ListenableBuilder para reagir a mudanças no estado (ex: após deleção ou atualização)
+    return ListenableBuilder(
+      listenable: journalProvider,
+      builder: (context, child) {
+        final entry = journalProvider.entries.firstWhere(
+          (e) => e.id == entryId,
+          // Fallback simples (em uma aplicação real, faríamos um fetch por ID)
+          orElse: () => throw Exception('Entrada do diário não encontrada.'), 
+        ); 
+        
+        final currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+        final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+        final isPositive = entry.pnl >= 0;
+
+        return AppLayout( // Substitui o Scaffold principal
+          appBar: AppBar(
+            title: Text('${entry.instrument} - Detalhes'),
+            actions: [
+              // Botão de Editar
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  // context.router.push(EditJournalEntryRoute(entry: entry)); // Rota futura
+                },
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _stakeController,
-                      decoration: const InputDecoration(labelText: 'Valor (R\$)'),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) => (value == null || double.tryParse(value) == null)
-                          ? 'Valor inválido.'
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _finalResultController,
-                      decoration: const InputDecoration(labelText: 'Resultado (+/- R\$)'),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      validator: (value) => (value == null || double.tryParse(value) == null)
-                          ? 'Resultado inválido.'
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _preAnalysisController,
-                decoration: const InputDecoration(labelText: 'Pré-Análise (Obrigatório)'),
-                maxLines: 5,
-                keyboardType: TextInputType.multiline,
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'A pré-análise é obrigatória.'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _postAnalysisController,
-                decoration: const InputDecoration(labelText: 'Pós-Análise (Opcional)'),
-                maxLines: 5,
-                keyboardType: TextInputType.multiline,
+              // Botão de Excluir
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => _confirmDelete(context, entryId, journalProvider),
               ),
             ],
           ),
-        ),
+          child: SingleChildScrollView(
+            // Padding removido, agora está no AppLayout
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+
+                // --- Resumo de P&L ---
+                Center(
+                  child: Text(
+                    currencyFormat.format(entry.pnl),
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: isPositive ? Colors.green[700] : Colors.red[700],
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    'Resultado Final (${entry.direction})',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                const ActionSeparator(), // Separador padronizado
+
+                // --- Dados Principais ---
+                _buildDetailRow(context, 'Ativo Negociado:', entry.instrument),
+                _buildDetailRow(context, 'Estratégia ID:', entry.strategyId, isMonospace: true),
+                
+                const SizedBox(height: 20),
+                _buildDetailRow(context, 'Preço de Entrada:', currencyFormat.format(entry.entryPrice)),
+                _buildDetailRow(context, 'Preço de Saída:', currencyFormat.format(entry.exitPrice)),
+                _buildDetailRow(context, 'Volume/Tamanho:', entry.volume.toString()),
+                
+                const SizedBox(height: 20),
+                _buildDetailRow(context, 'Data de Entrada:', dateFormat.format(entry.entryDate)),
+                _buildDetailRow(context, 'Data de Saída:', dateFormat.format(entry.exitDate)),
+                
+                const ActionSeparator(), // Separador padronizado
+
+                // --- Notas e Lições ---
+                Text('Notas do Trade:', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    entry.notes ?? 'Nenhuma nota registrada.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
+  /// Widget utilitário para formatar uma linha de detalhe.
+  Widget _buildDetailRow(BuildContext context, String label, String value, {bool isMonospace = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            value,
+            style: isMonospace ? const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600) : Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Exibe um diálogo de confirmação antes de excluir.
+  void _confirmDelete(BuildContext context, String entryId, JournalProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: const Text('Tem certeza de que deseja excluir permanentemente este lançamento do diário?'),
+        actions: [
+          TextButton(
+            onPressed: () => context.router.pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              context.router.pop(); // Fecha o diálogo
+              await provider.deleteEntry(entryId); // Chama a exclusão
+              context.router.pop(); // Retorna para a lista
+            },
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

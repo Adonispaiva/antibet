@@ -1,42 +1,24 @@
-import {
-  IsString,
-  IsEmail,
-  MinLength,
-  MaxLength,
-  IsNotEmpty,
-  IsEnum,
-  IsDateString,
-} from 'class-validator';
-// import { Gender } from '../user/user.entity'; // <-- CAUSA DO ERRO (TS2305)
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-// CORREÇÃO: Definindo o enum localmente no DTO para remover a importação falha.
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
-export class AuthRegisterDto {
-  @IsEmail()
-  @IsNotEmpty()
+/**
+ * Data Transfer Object (DTO) para validar o payload
+ * da requisição de registro (POST /auth/register).
+ */
+export class RegisterDto {
+  @IsEmail({}, { message: 'O email fornecido nao e valido.' })
+  @IsNotEmpty({ message: 'O email e obrigatorio.' })
   email: string;
 
-  @IsString()
-  @MinLength(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
-  @IsNotEmpty()
+  @IsString({ message: 'A senha deve ser um texto.' })
+  @IsNotEmpty({ message: 'A senha e obrigatoria.' })
+  @MinLength(8, { message: 'A senha deve ter no minimo 8 caracteres.' })
   password: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(50)
-  name: string;
+  @IsNotEmpty({ message: 'O primeiro nome e obrigatorio.' })
+  firstName: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  birthDate: string; // Formato 'YYYY-MM-DD'
-
-  @IsEnum(Gender, { message: 'Gênero inválido' })
-  @IsNotEmpty()
-  gender: Gender;
+  @IsString()
+  @IsNotEmpty({ message: 'O ultimo nome e obrigatorio.' })
+  lastName: string;
 }

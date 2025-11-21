@@ -1,32 +1,34 @@
-import { Controller, Get, Post, UseGuards, Req, Body, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, UseGuards, NotFoundException, Param } from '@nestjs/common';
 import { PlansService } from './plans.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { InitiateCheckoutDto } from './dto/initiate-checkout.dto'; 
+import { Plan } from './entities/plan.entity';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('plans')
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
   /**
-   * Rota pública para buscar todos os planos.
+   * Endpoint publico para listar todos os planos ativos.
+   * Usado na tela de precos/assinatura do Frontend.
+   * (Nao requer @UseGuards('jwt') pois deve ser visivel para usuarios nao logados)
    */
   @Get()
-  async findAll() {
-    // CORREÇÃO: Chamada correta do método: findAllPlans
-    return this.plansService.findAllPlans(); 
+  async findAllActivePlans(): Promise<Plan[]> {
+    return this.plansService.findAllActivePlans();
   }
 
   /**
-   * Rota protegida para iniciar o processo de checkout.
+   * Endpoint para buscar um plano especifico (ex: tela de checkout)
+   * Protegido por JWT, assumindo que o usuario deve estar logado
+   * para ver detalhes de um plano ou iniciar um checkout.
    */
-  @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true })) 
-  @Post('checkout')
-  async initiateCheckout(@Req() req, @Body() checkoutDto: InitiateCheckoutDto) {
-    const userId = req.user.id; 
-    const { planId } = checkoutDto; 
-
-    // CORREÇÃO: Chamada correta do método: initiateCheckout
-    return this.plansService.initiateCheckout(userId, planId); 
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<Plan> {
+    const plan = await this.plansService.findOne(id);
+    if (!plan) {
+      throw new NotFoundException('Plano nao encontrado');
+    }
+    return plan;
   }
 }

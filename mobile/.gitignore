@@ -1,45 +1,44 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# Git ignore para projetos Flutter
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
+# Arquivos/Diretórios gerados pelo Flutter e IDEs
 /build/
-/coverage/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+.vscode/
 
-# Symbolication related
-app.*.symbols
+# --- Arquivos específicos do Dart ---
+# Logs de testes e arquivos temporários
+*.dart_tool
+*.log
+*.lock
+*.temp
 
-# Obfuscation related
-app.*.map.json
+# Arquivos gerados pelo build_runner (Mocks)
+*.g.dart
+*.mocks.dart
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# --- Android ---
+android/local.properties
+/android/.gradle
+/android/app/build
+/android/.idea
+/android/key.properties # Chave de assinatura NUNCA deve ser versionada
+
+# --- iOS ---
+/ios/.build
+/ios/Flutter/Generated.xcconfig
+/ios/Pods/
+/ios/.symlinks/
+/ios/Runner.xcodeproj/project.pbxproj.unresolved
+/ios/Runner.xcodeproj/xcuserdata/
+
+# --- Dependências (node_modules, etc., se usados) ---
+/node_modules
+
+# --- Variáveis de Ambiente e Segredos ---
+.env
+.env.staging
+.env.production

@@ -1,38 +1,22 @@
-// backend/src/ai-chat/ai-chat.module.ts
-
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AiChatService } from './ai-chat.service';
 import { AiChatController } from './ai-chat.controller';
-import { AiChatConversation } from './entities/ai-chat-conversation.entity'; // Entidade de Conversa
-import { AiChatMessage } from './entities/ai-chat-message.entity'; // Entidade de Mensagem
-
-import { AuthModule } from '../auth/auth.module'; // Dependência para segurança
-import { UserModule } from '../user/user.module'; // Dependência para limites de uso
-import { PaymentsModule } from '../payments/payments.module'; // Dependência para status Premium
+import { AiChatService } from './ai-chat.service';
+import { ChatMessage } from './entities/chat-message.entity';
+import { AppConfigurationModule } from '../../config/config.module'; // Necessario para o AppConfigService
 
 @Module({
   imports: [
-    // 1. Importa as entidades de chat e TypeOrm
-    TypeOrmModule.forFeature([AiChatConversation, AiChatMessage]),
-
-    // 2. Importa o AuthModule para proteção de rotas
-    forwardRef(() => AuthModule), 
-
-    // 3. Importa o UserModule (para buscar dados do usuário, se necessário)
-    forwardRef(() => UserModule), 
-
-    // 4. Importa o PaymentsModule (para verificar limites e status Premium)
-    forwardRef(() => PaymentsModule), 
+    // Registra a entidade ChatMessage no TypeORM
+    TypeOrmModule.forFeature([ChatMessage]),
+    // Necessario para injetar o AppConfigService no AiChatService (chaves da API de IA)
+    AppConfigurationModule, 
   ],
   controllers: [AiChatController],
-  providers: [
-    AiChatService, // Serviço de lógica de negócio e integração com LLM
-  ],
-  exports: [
-    AiChatService, // Exporta o serviço para outros módulos
-    TypeOrmModule, // Exporta o TypeOrmModule de chat
-  ],
+  providers: [AiChatService],
+  // O AiChatService pode ser exportado caso outros módulos (ex: Journal)
+  // queiram usar a IA para análise de texto.
+  exports: [AiChatService], 
 })
 export class AiChatModule {}

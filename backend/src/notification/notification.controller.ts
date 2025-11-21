@@ -1,93 +1,59 @@
-// backend/src/notification/notification.controller.ts
-
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Delete, 
-  UseGuards, 
-  Req, 
-  Param, 
-  ParseIntPipe, 
-  HttpCode, 
-  HttpStatus 
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  UseGuards,
+  Request,
+  NotFoundException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
 
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { User } from '../user/entities/user.entity'; // A Entidade de Usuário
+import { Notification } from './entities/notification.entity';
 
-/**
- * Interface customizada para a requisição com o objeto User injetado pelo JwtStrategy.
- */
+// Interface para garantir o objeto user injetado pelo JwtStrategy
 interface RequestWithUser extends Request {
-  user: User;
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 }
 
-@Controller('notifications')
-@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controller
+@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controlador
+@Controller('notifications') // O nome do endpoint e plural e o padrao RESTful
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   /**
-   * Cria uma nova notificação (tipicamente usado internamente por outros serviços, 
-   * mas exposto para testes/administração).
-   */
-  @Post()
-  create(
-    @Body() createNotificationDto: CreateNotificationDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.notificationService.create(createNotificationDto, userId);
-  }
-
-  /**
-   * Lista todas as notificações do usuário logado.
+   * Lista todas as notificações do usuário logado (GET /notifications).
    */
   @Get()
-  findAll(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
-    return this.notificationService.findAll(userId);
+  async findAll(@Request() req: RequestWithUser): Promise<Notification[]> {
+    return this.notificationService.findAllUserNotifications(req.user.userId);
   }
 
   /**
-   * Atualiza o status de leitura de uma notificação específica.
+   * Retorna a contagem de notificações não lidas (GET /notifications/unread-count).
    */
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateNotificationDto: UpdateNotificationDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.notificationService.update(id, updateNotificationDto, userId);
+  @Get('unread-count')
+  async getUnreadCount(@Request() req: RequestWithUser): Promise<number> {
+    return this.notificationService.getUnreadCount(req.user.userId);
   }
-  
+
   /**
-   * Atualiza o status de leitura de todas as notificações não lidas.
+   * Marca uma notificação específica como lida (PATCH /notifications/:id/read).
    */
-  @Patch('read-all')
   @HttpCode(HttpStatus.OK)
-  markAllAsRead(@Req() req: RequestWithUser) {
-      const userId = req.user.id;
-      return this.notificationService.markAllAsRead(userId);
-  }
-
-  /**
-   * Remove uma notificação específica.
-   */
-  @Delete(':id')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.notificationService.remove(id, userId);
+  @Patch(':id/read')
+  async markAsRead(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<Notification> {
+    // O service já verifica a posse antes de marcar como lida
+    return this.notificationService.markAsRead(id, req.user.userId);
   }
 }

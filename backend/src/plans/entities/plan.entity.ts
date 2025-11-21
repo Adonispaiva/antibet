@@ -1,31 +1,76 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserRole } from '../../user/entities/user.entity';
 
-@Entity('plans')
+/**
+ * Define os intervalos de cobranca (ex: Mensal, Anual)
+ */
+export enum PlanInterval {
+  MONTHLY = 'month',
+  YEARLY = 'year',
+}
+
+@Entity({ name: 'plans' })
 export class Plan {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  name: string; // CRÍTICO: Nome do plano (propriedade que o TS está reclamando)
+  @Column({ unique: true, nullable: false })
+  name: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number; // Preço em BRL/USD (ex: 29.90)
+  /**
+   * Preco em centavos (integer) para evitar problemas de arredondamento.
+   * Ex: R$ 19,90 = 1990
+   */
+  @Column({ type: 'int', default: 0 })
+  price: number;
 
-  @Column({ type: 'int' })
-  aiTokens: number; // Tokens de IA que o plano oferece
+  @Column({
+    type: 'enum',
+    enum: PlanInterval,
+    default: PlanInterval.MONTHLY,
+  })
+  interval: PlanInterval;
 
-  @Column({ unique: true, nullable: false })
-  stripePriceId: string; // ID do Preço no Stripe (crucial para o Checkout)
+  /**
+   * O UserRole que este plano concede ao usuario.
+   * Ex: Um plano "Premium" concede o UserRole.PREMIUM.
+   */
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.BASIC,
+  })
+  grantedRole: UserRole;
 
-  @Column({ default: false })
-  isSubscription: boolean; // Se é recorrente
+  /**
+   * Lista de features (beneficios) do plano.
+   */
+  @Column({ type: 'simple-array', nullable: true })
+  features: string[];
 
-  @CreateDateColumn()
+  /**
+   * ID do plano no gateway de pagamento (ex: Stripe, PagSeguro).
+   * Essencial para o checkout.
+   */
+  @Column({ unique: true, nullable: true })
+  paymentGatewayId: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

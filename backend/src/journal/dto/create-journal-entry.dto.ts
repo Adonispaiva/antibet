@@ -1,39 +1,30 @@
-// backend/src/journal/dto/create-journal-entry.dto.ts
-
-import { IsNotEmpty, IsNumber, IsString, IsOptional, Min, Max, IsDateString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsArray,
+  IsDateString,
+} from 'class-validator';
 
 /**
- * Data Transfer Object (DTO) para a criação de uma nova entrada no diário.
- * * Garante a integridade dos dados financeiros e analíticos enviados pelo Mobile.
+ * Data Transfer Object (DTO) para criar uma nova entrada no diário.
  */
 export class CreateJournalEntryDto {
-  @IsNotEmpty({ message: 'O valor da aposta (stake) é obrigatório.' })
-  @IsNumber({}, { message: 'O valor da aposta deve ser um número.' })
-  @Min(0, { message: 'O valor da aposta não pode ser negativo.' })
-  stake: number; // Valor apostado/investido
+  @IsString({ message: 'O conteúdo do diário deve ser um texto.' })
+  @IsNotEmpty({ message: 'O conteúdo do diário (content) e obrigatorio.' })
+  content: string;
 
-  @IsNotEmpty({ message: 'O resultado final é obrigatório.' })
-  @IsNumber({}, { message: 'O resultado final deve ser um número.' })
-  // O resultado final pode ser negativo (prejuízo)
-  finalResult: number; 
-
-  @IsNotEmpty({ message: 'A data da entrada é obrigatória.' })
-  @IsDateString({}, { message: 'A data deve ser uma string de data válida (ISO 8601).' })
-  entryDate: string; // Data e hora da entrada (ISO 8601)
-
-  @IsNotEmpty({ message: 'O nome da estratégia é obrigatório.' })
-  @IsString({ message: 'O nome da estratégia deve ser uma string.' })
-  strategyName: string;
-
-  @IsNotEmpty({ message: 'A pré-análise é obrigatória.' })
-  @IsString({ message: 'A pré-análise deve ser uma string.' })
-  preAnalysis: string;
-
+  @IsInt({ message: 'O valor de P&L deve ser um numero inteiro em centavos.' })
   @IsOptional()
-  @IsString({ message: 'A pós-análise deve ser uma string.' })
-  postAnalysis?: string; // Análise feita após o resultado (Opcional)
+  pnlValue?: number;
 
+  @IsArray({ message: 'As tags devem ser fornecidas como um array de strings.' })
+  @IsString({ each: true, message: 'Cada tag deve ser uma string.' })
   @IsOptional()
-  @IsString({ message: 'O tipo de esporte/mercado deve ser uma string.' })
-  market?: string; // Ex: Futebol, Over/Under
+  tags?: string[];
+
+  @IsDateString({}, { message: 'A data da operacao (tradeDate) deve ser uma string de data valida.' })
+  @IsOptional()
+  tradeDate?: string; // Usamos string aqui e convertemos para Date no service/controller se necessario
 }

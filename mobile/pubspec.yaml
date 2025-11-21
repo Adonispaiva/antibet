@@ -1,48 +1,50 @@
-# mobile/pubspec.yaml
-
 name: antibet
-description: O aplicativo AntiBet (Inovexa Software).
-publish_to: 'none' # Impede a publicação acidental.
+description: Diário de Apostas e Ferramenta de Análise. MVP funcional da Inovexa Software.
 
-# A versão do aplicativo (Build).
+# Previne o acesso a arquivos de código fonte.
+publish_to: 'none' 
+
 version: 1.0.0+1
 
 environment:
-  # SDK do Flutter (Dart 3.x)
   sdk: '>=3.0.0 <4.0.0'
 
-# Dependências de Pacotes
-# Este é o arquivo necessário para a Fase de Integração.
 dependencies:
   flutter:
     sdk: flutter
+  
+  # Gerenciamento de Estado
+  flutter_riverpod: ^3.0.3 
 
-  # 1. Gerenciamento de Estado (Injeção de Dependência)
-  provider: ^6.0.5
+  # Comunicação com API (Rede)
+  dio: ^5.4.0
+  
+  # Modelagem de Dados e Serialização
+  json_annotation: ^4.8.1
 
-  # 2. Persistência Local (Fase 3 do Relatório)
-  shared_preferences: ^2.2.0
+  # Persistência local (Usado para simular o armazenamento seguro do Token)
+  shared_preferences: ^2.2.2 
 
-  # 3. Comunicação de API (Serviços de API E2E)
-  http: ^1.1.0
-
-  # 4. Formatação (Datas no Diário, Notificações)
-  intl: ^0.18.1
-
-  # 5. Abertura de Links (Fluxo de Pagamento)
-  url_launcher: ^6.1.14
-
-  # 6. Ícones Padrão
+  # UX / Ícones
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  
+  # Ferramentas de Teste e Mocks
+  flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
 
-# Configurações do Flutter
+  # Ferramentas de Build para Serialização JSON
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+
 flutter:
   uses-material-design: true
 
+  # Ativos (se houvesse imagens ou fontes personalizadas)
   # assets:
-  #   - assets/images/logo.png
+  #   - assets/

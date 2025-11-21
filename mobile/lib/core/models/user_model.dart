@@ -1,58 +1,64 @@
-// lib/core/models/user_model.dart
+// mobile/lib/core/models/user_model.dart
 
+/// Enum que representa o papel do usuário (role) no Backend.
+enum UserRole {
+  admin,
+  premium,
+  basic,
+}
+
+/// Modelo de dados para a Entidade Usuário.
+/// Corresponde à resposta simplificada do Backend (sem a senha).
 class UserModel {
   final String id;
   final String email;
-  final String fullName;
-  final String token; // Token de autenticação (JWT, etc.)
-  final DateTime createdAt;
+  final String firstName;
+  final String lastName;
+  final UserRole role;
+  final bool isActive;
 
-  // Construtor constante para garantir imutabilidade
-  const UserModel({
+  UserModel({
     required this.id,
     required this.email,
-    required this.fullName,
-    required this.token,
-    required this.createdAt,
+    required this.firstName,
+    required this.lastName,
+    required this.role,
+    required this.isActive,
   });
 
-  // Método de fábrica para criar um UserModel a partir de um Map (JSON de API)
+  /// Factory method para desserializar JSON em UserModel.
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Funcao auxiliar para mapear a string do backend para o Enum do Dart
+    UserRole mapRole(String roleString) {
+      switch (roleString) {
+        case 'admin':
+          return UserRole.admin;
+        case 'premium':
+          return UserRole.premium;
+        default:
+          return UserRole.basic;
+      }
+    }
+
     return UserModel(
       id: json['id'] as String,
       email: json['email'] as String,
-      fullName: json['fullName'] as String,
-      token: json['token'] as String,
-      // Converte o timestamp ou string de data para DateTime
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String,
+      role: mapRole(json['role'] as String),
+      isActive: json['isActive'] as bool,
     );
   }
 
-  // Método para converter o UserModel em um Map (JSON para API ou persistência)
+  /// Converte o modelo em JSON (útil para cache local)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'email': email,
-      'fullName': fullName,
-      'token': token,
-      'createdAt': createdAt.toIso8601String(), // Formato padrão ISO
+      'firstName': firstName,
+      'lastName': lastName,
+      'role': role.toString().split('.').last, // Converte Enum para String
+      'isActive': isActive,
     };
-  }
-
-  // Método de cópia (copy with) para criar uma nova instância com valores atualizados
-  UserModel copyWith({
-    String? id,
-    String? email,
-    String? fullName,
-    String? token,
-    DateTime? createdAt,
-  }) {
-    return UserModel(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      fullName: fullName ?? this.fullName,
-      token: token ?? this.token,
-      createdAt: createdAt ?? this.createdAt,
-    );
   }
 }

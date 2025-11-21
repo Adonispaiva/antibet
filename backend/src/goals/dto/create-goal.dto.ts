@@ -1,27 +1,36 @@
 import {
-  IsBoolean,
-  IsDateString,
+  IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
+  Min,
+  IsDateString,
 } from 'class-validator';
+import { GoalType } from '../entities/goal.entity';
 
 /**
- * DTO para validar a criação de uma nova Meta.
+ * Data Transfer Object (DTO) para criar uma nova meta.
  */
 export class CreateGoalDto {
-  @IsString()
-  @IsNotEmpty({ message: 'O título não pode estar vazio.' })
-  @MaxLength(255)
+  @IsString({ message: 'O titulo da meta deve ser um texto.' })
+  @IsNotEmpty({ message: 'O titulo e obrigatorio.' })
   title: string;
 
+  @IsString({ message: 'A descricao deve ser um texto.' })
   @IsOptional()
-  @IsString()
-  @MaxLength(2000)
   description?: string;
 
+  @IsEnum(GoalType, { message: 'Tipo de meta invalido. Use FINANCIAL, EMOTIONAL, TECHNICAL ou OTHER.' })
   @IsOptional()
-  @IsDateString({}, { message: 'Data de conclusão deve ser uma data válida.' })
-  dueDate?: Date;
+  type?: GoalType;
+
+  @IsNumber({}, { message: 'O valor alvo deve ser um numero.' })
+  @Min(0, { message: 'O valor alvo nao pode ser negativo.' })
+  @IsNotEmpty({ message: 'O valor alvo (targetValue) e obrigatorio.' })
+  targetValue: number;
+
+  @IsDateString({}, { message: 'A data alvo (targetDate) deve ser uma string de data valida.' })
+  @IsOptional()
+  targetDate?: string;
 }

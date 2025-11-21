@@ -1,43 +1,71 @@
-// backend/src/strategy/entities/strategy.entity.ts
-
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
-  Index,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity'; // Assumindo a entidade do Usuário
+import { User } from '../../user/entities/user.entity';
 
 /**
- * Entidade que registra as estratégias de análise criadas e utilizadas pelo usuário.
- * * Usada para categorizar e filtrar as entradas do diário.
+ * Define o tipo de foco da estrategia (Ex: Swing, Scalping, Position).
  */
-@Entity('strategies')
-@Index(['name', 'userId'], { unique: true }) // Garante que o usuário não tenha duas estratégias com o mesmo nome
+export enum StrategyFocus {
+  SWING = 'swing',
+  SCALPING = 'scalping',
+  POSITION = 'position',
+}
+
+/**
+ * Entidade que armazena uma estrategia de trade/investimento definida pelo usuario.
+ */
+@Entity({ name: 'strategies' })
 export class Strategy {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column()
-  userId: number; // Chave estrangeira para o usuário
-
-  @ManyToOne(() => User, user => user.id) // Relação N:1 com a entidade User
-  @JoinColumn({ name: 'userId' })
+  /**
+   * O usuario dono desta estrategia.
+   */
+  @ManyToOne(() => User, { nullable: false })
   user: User;
 
-  @Column({ length: 100 })
-  name: string; // Nome único da estratégia
+  @Column()
+  userId: string;
 
-  @Column({ length: 1000, nullable: true })
-  description: string; // Detalhes da regra da estratégia
+  @Column({ length: 100, nullable: false })
+  name: string;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({
+    type: 'enum',
+    enum: StrategyFocus,
+    default: StrategyFocus.SWING,
+  })
+  focus: StrategyFocus;
+
+  /**
+   * Percentual de risco aceito por operacao (ex: 1 = 1%).
+   */
+  @Column({ type: 'float', default: 1.0 })
+  riskPerTrade: number;
+
+  /**
+   * Metas de taxa de acerto (Win Rate)
+   */
+  @Column({ type: 'float', nullable: true })
+  targetWinRate: number;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

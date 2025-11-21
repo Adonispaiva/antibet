@@ -1,25 +1,17 @@
-import { Module, OnModuleInit, forwardRef } from '@nestjs/common'; 
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlansService } from './plans.service';
 import { PlansController } from './plans.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Plan } from './entities/plan.entity'; // Importação da Entidade Plan
-import { PaymentsModule } from '../payments/payments.module';
+import { Plan } from './entities/plan.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Plan]), 
-    // CRÍTICO: Usa forwardRef() para resolver o ciclo de importação
-    forwardRef(() => PaymentsModule), 
+    // Registra a entidade Plan no TypeORM
+    TypeOrmModule.forFeature([Plan]),
   ],
   controllers: [PlansController],
   providers: [PlansService],
-  exports: [PlansService, TypeOrmModule.forFeature([Plan])], 
+  // Exportamos o PlansService caso o PaymentsModule precise usa-lo
+  exports: [PlansService], 
 })
-export class PlansModule implements OnModuleInit { 
-  constructor(private readonly plansService: PlansService) {}
-
-  async onModuleInit() {
-    // Chamada do seed que o compilador está vendo
-    await this.plansService.seedPlans(); 
-  }
-}
+export class PlansModule {}

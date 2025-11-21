@@ -1,40 +1,61 @@
-// backend/src/ai-chat/entities/ai-chat-message.entity.ts
-
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
   ManyToOne,
-  JoinColumn,
-  Index,
 } from 'typeorm';
-import { AiChatConversation } from './ai-chat-conversation.entity'; // Entidade de Conversa
+import { User } from '../../user/entities/user.entity';
 
 /**
- * Entidade que armazena uma mensagem individual dentro de uma conversa de IA.
+ * Define a origem da mensagem (Usuario ou IA).
  */
-@Entity('ai_chat_messages')
-@Index(['conversationId', 'createdAt']) // Otimiza buscas por histórico de conversa
-export class AiChatMessage {
-  @PrimaryGeneratedColumn()
-  id: number;
+export enum MessageRole {
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  SYSTEM = 'system', // Usado para instruções iniciais da IA
+}
+
+/**
+ * Entidade que armazena uma mensagem individual dentro de uma conversa.
+ */
+@Entity({ name: 'chat_messages' })
+export class ChatMessage {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  /**
+   * O usuario dono desta mensagem.
+   */
+  @ManyToOne(() => User, { nullable: false })
+  user: User;
 
   @Column()
-  conversationId: number; // Chave estrangeira para a conversa
+  userId: string;
 
-  @ManyToOne(() => AiChatConversation, conversation => conversation.messages, { onDelete: 'CASCADE' }) // Relacionamento com exclusão em cascata
-  @JoinColumn({ name: 'conversationId' })
-  conversation: AiChatConversation;
+  @Column({
+    type: 'enum',
+    enum: MessageRole,
+    default: MessageRole.USER,
+  })
+  role: MessageRole;
 
-  @Column('text')
-  content: string; // Conteúdo da mensagem (texto)
+  @Column({ type: 'text', nullable: false })
+  content: string;
 
-  @Column({ length: 10 })
-  sender: 'user' | 'ai'; // Remetente da mensagem
+  /**
+   * O custo em centavos (ou outro valor) associado a esta mensagem/resposta da IA.
+   */
+  @Column({ type: 'float', default: 0 })
+  cost: number;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  /**
+   * Metadados brutos da resposta da API de IA (ex: contagem de tokens).
+   */
+  @Column({ type: 'jsonb', nullable: true })
+  aiMetadata: any;
+
+  // Campos de Controle
+  @CreateDateColumn({ type: 'timestamp with time zone', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
-  
-  // Nenhuma coluna 'updatedAt', pois mensagens de chat não são tipicamente atualizadas.
 }

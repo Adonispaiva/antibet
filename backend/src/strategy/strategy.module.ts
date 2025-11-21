@@ -1,32 +1,18 @@
-// backend/src/strategy/strategy.module.ts
-
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { StrategyService } from './strategy.service';
-import { StrategyController } from './strategy.controller';
-import { Strategy } from './entities/strategy.entity'; // A Entidade de Estratégia
-import { AuthModule } from '../auth/auth.module'; // Dependência para segurança
-import { UserModule } from '../user/user.module'; // Dependência para User
+import { Strategy } from './entities/strategy.entity';
+import { StrategiesService } from './strategies.service';
+import { StrategiesController } from './strategy.controller';
 
 @Module({
   imports: [
-    // 1. Importa a entidade Strategy e TypeOrm
+    // Registra a entidade Strategy no TypeORM
     TypeOrmModule.forFeature([Strategy]),
-
-    // 2. Importa o AuthModule para proteção de rotas
-    forwardRef(() => AuthModule), 
-
-    // 3. Importa o UserModule
-    forwardRef(() => UserModule), 
   ],
-  controllers: [StrategyController],
-  providers: [
-    StrategyService, // Serviço de lógica de negócio de estratégia
-  ],
-  exports: [
-    StrategyService, // Exporta o serviço para outros módulos (ex: JournalModule)
-    TypeOrmModule, // Exporta o TypeOrmModule de estratégia
-  ],
+  controllers: [StrategiesController],
+  providers: [StrategiesService],
+  // O StrategiesService deve ser exportado caso o módulo Journal ou Goals
+  // precise listar ou referenciar as estratégias de um usuário.
+  exports: [StrategiesService], 
 })
 export class StrategyModule {}

@@ -1,92 +1,89 @@
-// backend/src/goals/goals.controller.ts
-
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
-  UseGuards, 
-  Req, 
-  ParseIntPipe 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
 
 import { GoalsService } from './goals.service';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
-import { User } from '../user/entities/user.entity'; // A Entidade de Usuário
+import { Goal } from './entities/goal.entity';
 
-/**
- * Interface customizada para a requisição com o objeto User injetado pelo JwtStrategy.
- */
+// Interface para garantir o objeto user injetado pelo JwtStrategy
 interface RequestWithUser extends Request {
-  user: User;
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 }
 
-@Controller('goals')
-@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controller
+@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controlador
+@Controller('goals') // O nome do endpoint e plural e o padrao RESTful
 export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
   /**
-   * Cria uma nova meta para o usuário logado.
+   * Cria uma nova meta (POST /goals).
    */
   @Post()
-  create(
+  async create(
+    @Request() req: RequestWithUser,
     @Body() createGoalDto: CreateGoalDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.goalsService.create(createGoalDto, userId);
+  ): Promise<Goal> {
+    const user = { id: req.user.userId } as any; // Objeto user simplificado
+    return this.goalsService.createGoal(user, createGoalDto);
   }
 
   /**
-   * Lista todas as metas do usuário logado.
+   * Lista todas as metas ativas do usuário logado (GET /goals).
    */
   @Get()
-  findAll(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
-    return this.goalsService.findAll(userId);
+  async findAll(@Request() req: RequestWithUser): Promise<Goal[]> {
+    return this.goalsService.findAllUserGoals(req.user.userId);
   }
 
   /**
-   * Obtém uma meta específica pelo ID.
+   * Busca uma meta especifica (GET /goals/:id).
    */
   @Get(':id')
-  findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.goalsService.findOne(id, userId);
+  async findOne(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<Goal> {
+    // O service ja lanca a NotFoundException se nao encontrar ou se nao pertencer ao usuario
+    return this.goalsService.findOneGoal(id, req.user.userId);
   }
 
   /**
-   * Atualiza uma meta específica.
+   * Atualiza uma meta (PATCH /goals/:id).
    */
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
+  async update(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body() updateGoalDto: UpdateGoalDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.goalsService.update(id, updateGoalDto, userId);
+  ): Promise<Goal> {
+    const goal = await this.goalsService.findOneGoal(id, req.user.userId);
+    // O service fará o merge e o save
+    return this.goalsService.updateGoal(goal, updateGoalDto);
   }
 
   /**
-   * Remove uma meta específica.
+   * Remove (desativa) uma meta (DELETE /goals/:id).
+   * O service marca como isActive=false.
    */
   @Delete(':id')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.goalsService.remove(id, userId);
+  async remove(@Param('id') id: string, @Request() req: RequestWithUser): Promise<void> {
+    // O service lanca NotFoundException se nao encontrar
+    return this.goalsService.removeGoal(id, req.user.userId);
   }
 }

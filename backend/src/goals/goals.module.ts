@@ -3,14 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Goal } from './entities/goal.entity';
 import { GoalsService } from './goals.service';
 import { GoalsController } from './goals.controller';
-import { AuthModule } from '../auth/auth.module'; // Para o JwtAuthGuard
 
 @Module({
   imports: [
+    // Registra a entidade Goal no TypeORM
     TypeOrmModule.forFeature([Goal]),
-    AuthModule, // Para acesso ao JwtAuthGuard
   ],
-  providers: [GoalsService],
   controllers: [GoalsController],
+  providers: [GoalsService],
+  // O GoalsService deve ser exportado caso o módulo Metrics precise calcular o progresso das metas.
+  exports: [GoalsService], 
 })
 export class GoalsModule {}

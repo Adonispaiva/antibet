@@ -1,0 +1,23 @@
+===============================================
+SUMARIO DO PROJETO ANTIBET - 2025-11-19_ 702
+===============================================
+
+Diretorio raiz: D:\projetos-inovexa\antibet
+
+Quantidade de arquivos e pastas:
+-----------------------------------------------
+Total de entradas: 38672
+
+Principais diretorios encontrados:
+-----------------------------------------------
+- backend 
+- mobile 
+
+===============================================
+ARQUIVOS MAIORES QUE 50MB
+===============================================
+
+======== ARQUIVOS MAIORES QUE 50MB ========
+
+
+======== FIM DO SUMARIO ========

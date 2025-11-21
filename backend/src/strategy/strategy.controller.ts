@@ -1,92 +1,89 @@
-// backend/src/strategy/strategy.controller.ts
-
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
-  UseGuards, 
-  Req, 
-  ParseIntPipe 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
 
-import { StrategyService } from './strategy.service';
+import { StrategiesService } from './strategies.service';
 import { CreateStrategyDto } from './dto/create-strategy.dto';
 import { UpdateStrategyDto } from './dto/update-strategy.dto';
-import { User } from '../user/entities/user.entity'; // A Entidade de Usuário
+import { Strategy } from './entities/strategy.entity';
 
-/**
- * Interface customizada para a requisição com o objeto User injetado pelo JwtStrategy.
- */
+// Interface para garantir o objeto user injetado pelo JwtStrategy
 interface RequestWithUser extends Request {
-  user: User;
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 }
 
-@Controller('strategies')
-@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controller
-export class StrategyController {
-  constructor(private readonly strategyService: StrategyService) {}
+@UseGuards(AuthGuard('jwt')) // Protege todas as rotas deste controlador
+@Controller('strategies') // O nome do endpoint e plural e o padrao RESTful
+export class StrategiesController {
+  constructor(private readonly strategiesService: StrategiesService) {}
 
   /**
-   * Cria uma nova estratégia para o usuário logado.
+   * Cria uma nova estrategia (POST /strategies).
    */
   @Post()
-  create(
+  async create(
+    @Request() req: RequestWithUser,
     @Body() createStrategyDto: CreateStrategyDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.strategyService.create(createStrategyDto, userId);
+  ): Promise<Strategy> {
+    const user = { id: req.user.userId } as any; // Objeto user simplificado
+    return this.strategiesService.createStrategy(user, createStrategyDto);
   }
 
   /**
-   * Lista todas as estratégias do usuário logado.
+   * Lista todas as estrategias ativas do usuario logado (GET /strategies).
    */
   @Get()
-  findAll(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
-    return this.strategyService.findAll(userId);
+  async findAll(@Request() req: RequestWithUser): Promise<Strategy[]> {
+    return this.strategiesService.findAllUserStrategies(req.user.userId);
   }
 
   /**
-   * Obtém uma estratégia específica pelo ID.
+   * Busca uma estrategia especifica (GET /strategies/:id).
    */
   @Get(':id')
-  findOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.strategyService.findOne(id, userId);
+  async findOne(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<Strategy> {
+    // O service ja lanca a NotFoundException se nao encontrar ou se nao pertencer ao usuario
+    return this.strategiesService.findOneStrategy(id, req.user.userId);
   }
 
   /**
-   * Atualiza uma estratégia específica.
+   * Atualiza uma estrategia (PATCH /strategies/:id).
    */
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
+  async update(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body() updateStrategyDto: UpdateStrategyDto,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.strategyService.update(id, updateStrategyDto, userId);
+  ): Promise<Strategy> {
+    const strategy = await this.strategiesService.findOneStrategy(id, req.user.userId);
+    // O service fará o merge e o save
+    return this.strategiesService.updateStrategy(strategy, updateStrategyDto);
   }
 
   /**
-   * Remove uma estratégia específica.
+   * Remove (desativa) uma estrategia (DELETE /strategies/:id).
+   * O service marca como isActive=false.
    */
   @Delete(':id')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
-  ) {
-    const userId = req.user.id;
-    return this.strategyService.remove(id, userId);
+  async remove(@Param('id') id: string, @Request() req: RequestWithUser): Promise<void> {
+    // O service lanca NotFoundException se nao encontrar
+    return this.strategiesService.removeStrategy(id, req.user.userId);
   }
 }
