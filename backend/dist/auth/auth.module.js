@@ -8,14 +8,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthModule = void 0;
 const common_1 = require("@nestjs/common");
-const auth_service_1 = require("./auth.service");
-const auth_controller_1 = require("./auth.controller");
 const passport_1 = require("@nestjs/passport");
 const jwt_1 = require("@nestjs/jwt");
-const config_1 = require("@nestjs/config");
-const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const user_module_1 = require("../user/user.module");
-const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
+const config_module_1 = require("../config/config.module");
+const app_config_service_1 = require("../config/app-config.service");
+const auth_service_1 = require("./auth.service");
+const local_strategy_1 = require("./strategies/local.strategy");
+const jwt_strategy_1 = require("./strategies/jwt.strategy");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -23,27 +23,29 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             user_module_1.UserModule,
-            passport_1.PassportModule,
-            config_1.ConfigModule,
+            passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
+            config_module_1.AppConfigurationModule,
             jwt_1.JwtModule.registerAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
+                imports: [config_module_1.AppConfigurationModule],
+                inject: [app_config_service_1.AppConfigService],
                 useFactory: async (configService) => ({
-                    secret: configService.get('JWT_SECRET'),
-                    signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') },
+                    secret: configService.JWT_SECRET,
+                    signOptions: {
+                        expiresIn: configService.JWT_EXPIRATION_TIME,
+                    },
                 }),
             }),
         ],
+        controllers: [],
         providers: [
             auth_service_1.AuthService,
+            local_strategy_1.LocalStrategy,
             jwt_strategy_1.JwtStrategy,
-            jwt_auth_guard_1.JwtAuthGuard,
         ],
-        controllers: [auth_controller_1.AuthController],
         exports: [
-            auth_service_1.AuthService,
             jwt_1.JwtModule,
-            jwt_auth_guard_1.JwtAuthGuard,
+            passport_1.PassportModule,
+            auth_service_1.AuthService,
         ],
     })
 ], AuthModule);

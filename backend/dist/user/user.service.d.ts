@@ -1,13 +1,11 @@
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { AuthRegisterDto } from '../auth/dto/auth-register.dto';
-import { Plan } from '../plans/plans.entity';
+import { User, UserRole } from './entities/user.entity';
 export declare class UserService {
-    private userRepository;
-    private planRepository;
-    constructor(userRepository: Repository<User>, planRepository: Repository<Plan>);
-    findByEmail(email: string): Promise<User | undefined>;
-    findById(id: string): Promise<User>;
-    create(registerDto: AuthRegisterDto): Promise<User>;
-    updateUserPlan(userId: string, stripePriceId: string, subscriptionId: string): Promise<User>;
+    private readonly userRepository;
+    constructor(userRepository: Repository<User>);
+    create(createUserDto: any): Promise<User>;
+    findAll(): Promise<User[]>;
+    findOne(id: string): Promise<User | undefined>;
+    findOneByEmail(email: string): Promise<User | undefined>;
+    updateUserRole(userId: string, newRole: UserRole): Promise<User>;
 }

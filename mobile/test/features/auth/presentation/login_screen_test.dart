@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 // 1. Criamos um "Fake" Notifier para controlar o estado da UI
 // Ele simula o UserProvider real, mas nos permite definir o estado manualmente.
 class FakeUserNotifier extends StateNotifier<UserState> {
-  FakeUserNotifier(UserState initialState) : super(initialState);
+  FakeUserNotifier(super.initialState);
 
   int loginCallCount = 0;
   String? lastEmail;
@@ -122,7 +122,7 @@ void main() {
 
     // Act
     // 6. Forçamos o estado de erro
-    fakeUserNotifier.setTestState(UserError(message: 'Login falhou'));
+    fakeUserNotifier.setTestState(const UserError(message: 'Login falhou'));
     // Rebuilda
     await tester.pump();
 

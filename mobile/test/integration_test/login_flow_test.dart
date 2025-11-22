@@ -43,7 +43,7 @@ void main() {
   Future<void> pumpApp(WidgetTester tester) async {
     // 2. Sobrescrevemos os providers no 'main.dart'
     // A app.main() será chamada, mas com estas sobreposições
-    await app.main(
+    app.main(
       overrides: [
         authServiceProvider.overrideWithValue(mockAuthService),
         secureStorageServiceProvider.overrideWithValue(mockSecureStorageService),

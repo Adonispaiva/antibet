@@ -5,7 +5,7 @@ import 'package:antibet/core/models/financial_metrics_model.dart'; // Pressupond
 /// globais do usuário, como ROI, lucro total e taxa de acerto.
 class FinancialMetricsNotifier extends ChangeNotifier {
   // Estado privado que armazena as métricas financeiras.
-  FinancialMetricsModel _metrics = FinancialMetricsModel(
+  FinancialMetricsModel _metrics = const FinancialMetricsModel(
     totalProfit: 0.0,
     roi: 0.0,
     hitRate: 0.0,
@@ -42,7 +42,7 @@ class FinancialMetricsNotifier extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 600));
     
     // Simulação de dados iniciais ou carregados
-    _metrics = FinancialMetricsModel(
+    _metrics = const FinancialMetricsModel(
       totalProfit: 150.75,
       roi: 0.08,
       hitRate: 0.65,

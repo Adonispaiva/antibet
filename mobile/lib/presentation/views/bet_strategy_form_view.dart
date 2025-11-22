@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 // Importações dos notifiers e modelos
 import '../../notifiers/bet_strategy_notifier.dart';
 import '../../core/domain/bet_strategy_model.dart';
-import '../../infra/services/bet_strategy_service.dart'; // Para tratamento de exceção
+// Para tratamento de exceção
 
 class BetStrategyFormView extends StatefulWidget {
   // Recebe a estratégia para edição (opcional, para criação)

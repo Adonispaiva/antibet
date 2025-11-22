@@ -41,7 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AntiBet Dashboard'),
-        actions: [
+        actions: const [
           // Botão de Logout (removido daqui, pois agora está na SettingsScreen)
           // IconButton(
           //   icon: const Icon(Icons.logout),

@@ -11,9 +11,7 @@ class StorageService {
   /// Inicializa o serviço de armazenamento.
   /// Deve ser chamado no 'main.dart' ANTES de DependencyInjection.initialize().
   static Future<void> init() async {
-    if (_prefs == null) {
-      _prefs = await SharedPreferences.getInstance();
-    }
+    _prefs ??= await SharedPreferences.getInstance();
   }
 
   /// Salva dados (String) no armazenamento local usando uma chave.

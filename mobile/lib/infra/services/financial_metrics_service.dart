@@ -32,9 +32,9 @@ class FinancialMetricsService {
       const int totalBets = 55;
       const int totalWins = 35;
 
-      final double returnOnInvestment = totalProfitLoss / totalStaked; // 125 / 1050 ≈ 0.119
-      final double averageStake = totalStaked / totalBets; // 1050 / 55 ≈ 19.09
-      final double winRatePercentage = (totalWins / totalBets) * 100; // 35 / 55 ≈ 63.63%
+      const double returnOnInvestment = totalProfitLoss / totalStaked; // 125 / 1050 ≈ 0.119
+      const double averageStake = totalStaked / totalBets; // 1050 / 55 ≈ 19.09
+      const double winRatePercentage = (totalWins / totalBets) * 100; // 35 / 55 ≈ 63.63%
 
       final metrics = FinancialMetricsModel(
         returnOnInvestment: returnOnInvestment,

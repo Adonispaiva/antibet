@@ -15,28 +15,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlansService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const plan_entity_1 = require("./entities/plan.entity");
 const typeorm_2 = require("typeorm");
-const FREE_PLAN_ID = 'f1e1a1a1-1a1a-1a1a-1a1a-1a1a1a1a1a1a';
+const plan_entity_1 = require("./entities/plan.entity");
 let PlansService = class PlansService {
     constructor(planRepository) {
         this.planRepository = planRepository;
     }
-    async findAll() {
+    async findAllActivePlans() {
         return this.planRepository.find({
-            order: {
-                price: 'ASC',
-            },
+            where: { isActive: true },
+            order: { price: 'ASC' },
         });
     }
-    async findPlanByUserId(userId) {
-        const freePlan = await this.planRepository.findOne({
-            where: { id: FREE_PLAN_ID },
-        });
-        if (!freePlan) {
-            throw new common_1.InternalServerErrorException('Plano gratuito padrão não encontrado no banco de dados.');
-        }
-        return freePlan;
+    async findOne(id) {
+        return this.planRepository.findOne({ where: { id } });
+    }
+    async findByGatewayId(gatewayId) {
+        return this.planRepository.findOne({ where: { paymentGatewayId: gatewayId } });
     }
 };
 exports.PlansService = PlansService;

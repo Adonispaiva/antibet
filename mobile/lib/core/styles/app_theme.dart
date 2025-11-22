@@ -15,7 +15,6 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         error: AppColors.accentRed,
-        background: AppColors.backgroundLight,
         surface: AppColors.surfaceLight,
       ),
       scaffoldBackgroundColor: AppColors.backgroundLight,

@@ -107,7 +107,7 @@ class _AddBetJournalEntryScreenState extends State<AddBetJournalEntryScreen> {
                   labelText: 'Strategy',
                   border: OutlineInputBorder(),
                 ),
-                value: _selectedStrategyId,
+                initialValue: _selectedStrategyId,
                 items: strategies.map((strategy) {
                   return DropdownMenuItem<String>(
                     value: strategy.id,
@@ -148,7 +148,7 @@ class _AddBetJournalEntryScreenState extends State<AddBetJournalEntryScreen> {
                   labelText: 'Result',
                   border: OutlineInputBorder(),
                 ),
-                value: _selectedResult,
+                initialValue: _selectedResult,
                 items: _results.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,

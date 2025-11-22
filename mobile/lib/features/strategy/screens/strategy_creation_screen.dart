@@ -101,7 +101,7 @@ class _StrategyCreationScreenState extends State<StrategyCreationScreen> {
                   // --- Type Selection ---
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Tipo de Trading'),
-                    value: _selectedType,
+                    initialValue: _selectedType,
                     items: _strategyTypes.map((type) {
                       return DropdownMenuItem(
                         value: type,

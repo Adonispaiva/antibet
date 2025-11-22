@@ -24,7 +24,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
   ];
 
   int _currentStep = 0;
-  List<int> _answers = List<int>.filled(5, 0); // Respostas de 0 a 4
+  final List<int> _answers = List<int>.filled(5, 0); // Respostas de 0 a 4
 
   // Estado para o resultado final
   bool _isAssessmentComplete = false;

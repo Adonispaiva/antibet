@@ -11,18 +11,28 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateJournalEntryDto = void 0;
 const class_validator_1 = require("class-validator");
-const journal_entry_entity_1 = require("../entities/journal-entry.entity");
 class CreateJournalEntryDto {
 }
 exports.CreateJournalEntryDto = CreateJournalEntryDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)({ message: 'O conteúdo não pode estar vazio.' }),
-    (0, class_validator_1.MaxLength)(5000, { message: 'A entrada do diário é muito longa.' }),
+    (0, class_validator_1.IsString)({ message: 'O conteúdo do diário deve ser um texto.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O conteúdo do diário (content) e obrigatorio.' }),
     __metadata("design:type", String)
 ], CreateJournalEntryDto.prototype, "content", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(journal_entry_entity_1.JournalMood, { message: 'Humor inválido.' }),
+    (0, class_validator_1.IsInt)({ message: 'O valor de P&L deve ser um numero inteiro em centavos.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateJournalEntryDto.prototype, "pnlValue", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)({ message: 'As tags devem ser fornecidas como um array de strings.' }),
+    (0, class_validator_1.IsString)({ each: true, message: 'Cada tag deve ser uma string.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateJournalEntryDto.prototype, "tags", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)({}, { message: 'A data da operacao (tradeDate) deve ser uma string de data valida.' }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], CreateJournalEntryDto.prototype, "mood", void 0);
+], CreateJournalEntryDto.prototype, "tradeDate", void 0);
 //# sourceMappingURL=create-journal-entry.dto.js.map

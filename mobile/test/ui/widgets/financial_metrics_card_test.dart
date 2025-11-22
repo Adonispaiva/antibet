@@ -16,7 +16,7 @@ void main() {
   group('FinancialMetricsCard Widget Tests', () {
     testWidgets('Card renders metrics correctly for a profitable scenario', (WidgetTester tester) async {
       // 1. Setup Mock Data for a profitable scenario
-      final profitableMetrics = FinancialMetricsModel(
+      const profitableMetrics = FinancialMetricsModel(
         totalBalance: 550.00,
         totalStaked: 1000.00,
         netProfitLoss: 50.00,
@@ -53,7 +53,7 @@ void main() {
 
     testWidgets('Card renders metrics correctly for a losing scenario', (WidgetTester tester) async {
       // 1. Setup Mock Data for a losing scenario
-      final losingMetrics = FinancialMetricsModel(
+      const losingMetrics = FinancialMetricsModel(
         totalBalance: 900.00,
         totalStaked: 1000.00,
         netProfitLoss: -100.00,

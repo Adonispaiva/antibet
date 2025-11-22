@@ -1,7 +1,5 @@
-/**
- * Arquivo de Constantes para Assets (Caminhos de Imagens e Ícones).
- * O desenvolvedor deve garantir que as imagens existam nas pastas de assets.
- */
+/// Arquivo de Constantes para Assets (Caminhos de Imagens e Ícones).
+/// O desenvolvedor deve garantir que as imagens existam nas pastas de assets.
 class AppAssets {
   // -----------------------------------------------------------------
   // LOGOS E MARCAS (Baseado na Entidade User.avatarName e Inovexa logo)

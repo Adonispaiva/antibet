@@ -1,10 +1,12 @@
 import { Repository } from 'typeorm';
 import { JournalEntry } from './entities/journal-entry.entity';
-import { CreateJournalEntryDto } from './dto/create-journal-entry.dto';
+import { User } from '../../user/entities/user.entity';
 export declare class JournalService {
-    private readonly journalRepository;
-    constructor(journalRepository: Repository<JournalEntry>);
-    createEntry(userId: string, createDto: CreateJournalEntryDto): Promise<JournalEntry>;
-    findEntriesByUserId(userId: string): Promise<JournalEntry[]>;
-    deleteEntry(userId: string, entryId: string): Promise<void>;
+    private readonly journalEntryRepository;
+    constructor(journalEntryRepository: Repository<JournalEntry>);
+    createEntry(user: User, createJournalEntryDto: any): Promise<JournalEntry>;
+    findAllEntries(userId: string): Promise<JournalEntry[]>;
+    findOneEntry(id: string, userId: string): Promise<JournalEntry | undefined>;
+    updateEntry(entry: JournalEntry, updateJournalEntryDto: any): Promise<JournalEntry>;
+    removeEntry(id: string, userId: string): Promise<void>;
 }

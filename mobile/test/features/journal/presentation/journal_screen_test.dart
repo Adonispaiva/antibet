@@ -13,13 +13,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Fake Notifier para UserProvider
 class FakeUserNotifier extends StateNotifier<UserState> {
-  FakeUserNotifier(UserState initialState) : super(initialState);
+  FakeUserNotifier(super.initialState);
   void setTestState(UserState newState) => state = newState;
 }
 
 // Fake Notifier para JournalProvider
 class FakeJournalNotifier extends StateNotifier<JournalState> {
-  FakeJournalNotifier(JournalState initialState) : super(initialState);
+  FakeJournalNotifier(super.initialState);
 
   int getJournalCallCount = 0;
   String? lastDate;
@@ -41,7 +41,7 @@ void main() {
   // Modelos de Teste
   final tUserModel = UserModel(
       id: '1', name: 'Test User', email: 'test@example.com', token: 'token');
-  final tJournalModel = JournalModel(
+  const tJournalModel = JournalModel(
     id: '1',
     userId: '1',
     date: '2025-11-17',

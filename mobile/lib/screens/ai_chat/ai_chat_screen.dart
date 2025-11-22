@@ -7,7 +7,7 @@ import 'package:antibet_mobile/utils/app_typography.dart';
 import 'package:antibet_mobile/controllers/ai_chat/ai_chat_controller.dart'; 
 
 class AiChatScreen extends StatelessWidget {
-  const AiChatScreen({Key? key}) : super(key: key);
+  const AiChatScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -88,8 +88,8 @@ void main() {
       when(() => mockNotifier.updateEntry(any())).thenAnswer((_) async => true);
       
       await tester.pumpWidget(TestEditWrapper(
-        child: EditEntryScreen(entry: tEntry),
         mockNotifier: mockNotifier,
+        child: EditEntryScreen(entry: tEntry),
       ));
       await tester.pumpAndSettle();
 
@@ -120,8 +120,8 @@ void main() {
       when(() => mockNotifier.deleteEntry(tEntry.id)).thenAnswer((_) async => true);
       
       await tester.pumpWidget(TestEditWrapper(
-        child: EditEntryScreen(entry: tEntry),
         mockNotifier: mockNotifier,
+        child: EditEntryScreen(entry: tEntry),
       ));
       await tester.pumpAndSettle();
 
@@ -146,8 +146,8 @@ void main() {
     testWidgets('should not delete entry if confirmation is cancelled', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(TestEditWrapper(
-        child: EditEntryScreen(entry: tEntry),
         mockNotifier: mockNotifier,
+        child: EditEntryScreen(entry: tEntry),
       ));
       await tester.pumpAndSettle();
 

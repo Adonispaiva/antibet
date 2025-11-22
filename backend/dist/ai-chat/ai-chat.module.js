@@ -8,26 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiChatModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const ai_chat_controller_1 = require("./ai-chat.controller");
 const ai_chat_service_1 = require("./ai-chat.service");
-const ai_gateway_service_1 = require("./ai-gateway.service");
-const ai_log_module_1 = require("../ai-log/ai-log.module");
-const plans_module_1 = require("../plans/plans.module");
-const auth_module_1 = require("../auth/auth.module");
-const user_module_1 = require("../user/user.module");
+const chat_message_entity_1 = require("./entities/chat-message.entity");
+const config_module_1 = require("../../config/config.module");
 let AiChatModule = class AiChatModule {
 };
 exports.AiChatModule = AiChatModule;
 exports.AiChatModule = AiChatModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            auth_module_1.AuthModule,
-            plans_module_1.PlansModule,
-            ai_log_module_1.AiLogModule,
-            user_module_1.UserModule,
+            typeorm_1.TypeOrmModule.forFeature([chat_message_entity_1.ChatMessage]),
+            config_module_1.AppConfigurationModule,
         ],
         controllers: [ai_chat_controller_1.AiChatController],
-        providers: [ai_chat_service_1.AiChatService, ai_gateway_service_1.AiGatewayService],
+        providers: [ai_chat_service_1.AiChatService],
+        exports: [ai_chat_service_1.AiChatService],
     })
 ], AiChatModule);
 //# sourceMappingURL=ai-chat.module.js.map

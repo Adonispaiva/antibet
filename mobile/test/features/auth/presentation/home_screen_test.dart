@@ -75,7 +75,7 @@ void main() {
     // Arrange
     // O estado de erro também deve levar ao Login
     await tester
-        .pumpWidget(createWidgetUnderTest(UserError(message: 'Falha')));
+        .pumpWidget(createWidgetUnderTest(const UserError(message: 'Falha')));
 
     // Assert
     expect(find.byType(LoginScreen), findsOneWidget);

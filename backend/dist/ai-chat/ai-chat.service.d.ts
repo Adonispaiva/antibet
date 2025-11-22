@@ -1,17 +1,16 @@
-import { AiGatewayService } from './ai-gateway.service';
-import { AiLogService } from '../ai-log/ai-log.service';
-import { PlansService } from '../plans/plans.service';
-import { UserService } from '../user/user.service';
-import { AiModelName } from './ia-models.config';
+import { Repository } from 'typeorm';
+import { AppConfigService } from '../../config/app-config.service';
+import { ChatMessage } from './entities/chat-message.entity';
+import { CreateChatMessageDto } from './dto/create-chat-message.dto';
+import { User } from '../../user/entities/user.entity';
 export declare class AiChatService {
-    private readonly aiGatewayService;
-    private readonly aiLogService;
-    private readonly plansService;
-    private readonly userService;
-    constructor(aiGatewayService: AiGatewayService, aiLogService: AiLogService, plansService: PlansService, userService: UserService);
-    handleInteraction(userId: string, userPrompt: string): Promise<{
-        response: string;
-        model: AiModelName;
-    }>;
-    private _buildSystemPrompt;
+    private readonly chatMessageRepository;
+    private readonly configService;
+    private readonly AI_MODEL;
+    private readonly API_URL;
+    constructor(chatMessageRepository: Repository<ChatMessage>, configService: AppConfigService);
+    getChatHistory(userId: string): Promise<ChatMessage[]>;
+    processUserMessage(user: User, createChatMessageDto: CreateChatMessageDto): Promise<ChatMessage>;
+    private saveMessage;
+    private callAIModel;
 }

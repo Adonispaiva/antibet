@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Fake Notifier para JournalProvider (Reutilizando a estrutura do AddEntryScreenTest)
 class FakeJournalNotifier extends StateNotifier<JournalState> {
-  FakeJournalNotifier(JournalState initialState) : super(initialState);
+  FakeJournalNotifier(super.initialState);
 
   int updateEntryCallCount = 0;
   int deleteEntryCallCount = 0;

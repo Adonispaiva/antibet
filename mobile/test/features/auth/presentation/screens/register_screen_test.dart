@@ -46,8 +46,8 @@ void main() {
     testWidgets('should show error when required fields are empty', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(TestRegisterWrapper(
-        child: const RegisterScreen(),
         mockAuthService: mockAuthService,
+        child: const RegisterScreen(),
       ));
 
       // Act: Tenta registrar com campos vazios
@@ -67,6 +67,7 @@ void main() {
       when(() => mockAuthService.register(tEmail, tPassword)).thenAnswer((_) async {});
 
       await tester.pumpWidget(TestRegisterWrapper(
+        mockAuthService: mockAuthService,
         child: Builder(
           builder: (context) {
             // Mocking the navigation context (GoRouter)
@@ -79,7 +80,6 @@ void main() {
             );
           },
         ),
-        mockAuthService: mockAuthService,
       ));
 
       // Act: Preenche os campos
@@ -114,8 +114,8 @@ void main() {
           .thenThrow(Exception(tErrorMessage));
 
       await tester.pumpWidget(TestRegisterWrapper(
-        child: const RegisterScreen(),
         mockAuthService: mockAuthService,
+        child: const RegisterScreen(),
       ));
 
       // Act: Preenche os campos

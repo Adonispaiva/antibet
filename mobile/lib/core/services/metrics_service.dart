@@ -44,7 +44,7 @@ class MetricsService {
     // Simplificando o cálculo do ROI: Retorno Absoluto é a principal métrica
     // Em produção, o ROI % seria (Retorno / Capital Investido) * 100, 
     // mas para a v1.0, focamos no resultado absoluto (Lucro/Prejuízo).
-    final MetricValue percentage = 0.0; // Não aplicável/calculado na v1.0
+    const MetricValue percentage = 0.0; // Não aplicável/calculado na v1.0
     final String absoluteValue = totalProfitLoss.toStringAsFixed(2);
     
     return MetricSummaryModel(
@@ -84,7 +84,7 @@ class MetricsService {
 
     // A Taxa de Utilização é um indicador de engajamento, não tem percentual de "mudança"
     // ou "positividade" intrínseco, exceto a contagem.
-    final MetricValue percentage = 0.0; 
+    const MetricValue percentage = 0.0; 
     
     return MetricSummaryModel(
       title: 'Registros',

@@ -69,8 +69,8 @@ void main() {
       mockNotifier.setState(const AsyncValue.loading());
       
       await tester.pumpWidget(TestSettingsWrapper(
-        child: const SettingsScreen(),
         mockNotifier: mockNotifier,
+        child: const SettingsScreen(),
       ));
 
       // Assert
@@ -79,15 +79,15 @@ void main() {
 
     testWidgets('should show settings options when data is available', (WidgetTester tester) async {
       // Arrange
-      mockNotifier.setState(AsyncValue.data(const UserSettingsModel(
+      mockNotifier.setState(const AsyncValue.data(UserSettingsModel(
         isDarkMode: true,
         enableNotifications: false,
         preferredCurrency: 'BRL',
       )));
       
       await tester.pumpWidget(TestSettingsWrapper(
-        child: const SettingsScreen(),
         mockNotifier: mockNotifier,
+        child: const SettingsScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -109,8 +109,8 @@ void main() {
       mockNotifier.setState(AsyncValue.data(UserSettingsModel.initial())); // isDarkMode: false
       
       await tester.pumpWidget(TestSettingsWrapper(
-        child: const SettingsScreen(),
         mockNotifier: mockNotifier,
+        child: const SettingsScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -129,8 +129,8 @@ void main() {
       mockNotifier.setState(AsyncValue.data(tSettings)); 
       
       await tester.pumpWidget(TestSettingsWrapper(
-        child: const SettingsScreen(),
         mockNotifier: mockNotifier,
+        child: const SettingsScreen(),
       ));
       await tester.pumpAndSettle();
 

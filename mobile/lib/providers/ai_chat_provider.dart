@@ -7,7 +7,7 @@ import 'package:inovexa_antibet/services/api_service.dart';
 class AiChatProvider with ChangeNotifier {
   final AuthProvider _authProvider; // Dependência para obter o token
 
-  List<ChatMessage> _messages = [];
+  final List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
   // Getters

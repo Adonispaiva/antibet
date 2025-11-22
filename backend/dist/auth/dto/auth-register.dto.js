@@ -9,43 +9,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthRegisterDto = exports.Gender = void 0;
+exports.RegisterDto = void 0;
 const class_validator_1 = require("class-validator");
-var Gender;
-(function (Gender) {
-    Gender["MALE"] = "male";
-    Gender["FEMALE"] = "female";
-    Gender["OTHER"] = "other";
-})(Gender || (exports.Gender = Gender = {}));
-class AuthRegisterDto {
+class RegisterDto {
 }
-exports.AuthRegisterDto = AuthRegisterDto;
+exports.RegisterDto = RegisterDto;
 __decorate([
-    (0, class_validator_1.IsEmail)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsEmail)({}, { message: 'O email fornecido nao e valido.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O email e obrigatorio.' }),
     __metadata("design:type", String)
-], AuthRegisterDto.prototype, "email", void 0);
+], RegisterDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsString)({ message: 'A senha deve ser um texto.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'A senha e obrigatoria.' }),
+    (0, class_validator_1.MinLength)(8, { message: 'A senha deve ter no minimo 8 caracteres.' }),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(6, { message: 'A senha deve ter pelo menos 6 caracteres' }),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O primeiro nome e obrigatorio.' }),
     __metadata("design:type", String)
-], AuthRegisterDto.prototype, "password", void 0);
+], RegisterDto.prototype, "firstName", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.MinLength)(3),
-    (0, class_validator_1.MaxLength)(50),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O ultimo nome e obrigatorio.' }),
     __metadata("design:type", String)
-], AuthRegisterDto.prototype, "name", void 0);
-__decorate([
-    (0, class_validator_1.IsDateString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], AuthRegisterDto.prototype, "birthDate", void 0);
-__decorate([
-    (0, class_validator_1.IsEnum)(Gender, { message: 'Gênero inválido' }),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], AuthRegisterDto.prototype, "gender", void 0);
+], RegisterDto.prototype, "lastName", void 0);
 //# sourceMappingURL=auth-register.dto.js.map

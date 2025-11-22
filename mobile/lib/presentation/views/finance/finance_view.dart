@@ -86,27 +86,27 @@ class FinanceView extends StatelessWidget {
           color: _progressColor.withOpacity(0.9),
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Seu Saldo AntiBet é de:',
               style: TextStyle(fontSize: 18, color: Colors.white70),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'R\$ 7.345,50', // Simulação de Economia
                   style: TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Icon(Icons.trending_up, color: Colors.white, size: 48),
               ],
             ),
-            const SizedBox(height: 5),
-            const Text(
+            SizedBox(height: 5),
+            Text(
               '* Estimativa baseada em seus padrões anteriores de aposta.',
               style: TextStyle(fontSize: 12, color: Colors.white54),
             ),
@@ -157,7 +157,7 @@ class FinanceView extends StatelessWidget {
         leading: Icon(Icons.money_off, color: Colors.red[700], size: 40),
         title: const Text('Simulador de Oportunidade Perdida', style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: const Text('Veja o que você poderia ter comprado ou investido com o valor total das suas perdas.'),
-        trailing: Icon(Icons.chevron_right),
+        trailing: const Icon(Icons.chevron_right),
         onTap: () {
           // Simulação: Navegação para o simulador de investimento
           context.go('/finance/simulator');

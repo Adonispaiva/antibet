@@ -18,32 +18,35 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const journal_entry_entity_1 = require("./entities/journal-entry.entity");
 let JournalService = class JournalService {
-    constructor(journalRepository) {
-        this.journalRepository = journalRepository;
+    constructor(journalEntryRepository) {
+        this.journalEntryRepository = journalEntryRepository;
     }
-    async createEntry(userId, createDto) {
-        const newEntry = this.journalRepository.create({
-            ...createDto,
-            userId: userId,
+    async createEntry(user, createJournalEntryDto) {
+        const newEntry = this.journalEntryRepository.create({
+            ...createJournalEntryDto,
+            user: user,
+            userId: user.id,
+            sentiment: journal_entry_entity_1.JournalSentiment.NEUTRAL,
         });
-        return this.journalRepository.save(newEntry);
+        return this.journalEntryRepository.save(newEntry);
     }
-    async findEntriesByUserId(userId) {
-        return this.journalRepository.find({
+    async findAllEntries(userId) {
+        return this.journalEntryRepository.find({
             where: { userId: userId },
-            order: {
-                createdAt: 'DESC',
-            },
+            order: { tradeDate: 'DESC' },
         });
     }
-    async deleteEntry(userId, entryId) {
-        const result = await this.journalRepository.delete({
-            id: entryId,
-            userId: userId,
+    async findOneEntry(id, userId) {
+        return this.journalEntryRepository.findOne({
+            where: { id: id, userId: userId },
         });
-        if (result.affected === 0) {
-            throw new common_1.NotFoundException('Entrada do diário não encontrada ou não pertence ao usuário.');
-        }
+    }
+    async updateEntry(entry, updateJournalEntryDto) {
+        const updatedEntry = this.journalEntryRepository.merge(entry, updateJournalEntryDto);
+        return this.journalEntryRepository.save(updatedEntry);
+    }
+    async removeEntry(id, userId) {
+        await this.journalEntryRepository.delete({ id: id, userId: userId });
     }
 };
 exports.JournalService = JournalService;

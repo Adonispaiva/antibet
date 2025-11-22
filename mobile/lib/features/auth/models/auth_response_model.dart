@@ -1,7 +1,6 @@
 // mobile/lib/features/auth/models/auth_response_model.dart
 
-import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Para debugPrint
+// Para debugPrint
 
 /// Modelo de dados que representa a resposta bem-sucedida de Login ou Registro da API.
 /// 

@@ -66,7 +66,7 @@ void main() {
         // Arrange
         final emptyJson = Map<String, dynamic>.from(tJournalJson)
           ..['entries'] = [];
-        final emptyModel = JournalModel(
+        const emptyModel = JournalModel(
           id: 'journal1',
           userId: 'user1',
           date: '2025-11-17',
@@ -74,7 +74,7 @@ void main() {
           totalWins: 1,
           totalLost: 0,
           profit: 150.0,
-          entries: const [],
+          entries: [],
         );
         
         // Act

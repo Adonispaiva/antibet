@@ -12,7 +12,6 @@ const typeorm_1 = require("@nestjs/typeorm");
 const journal_entry_entity_1 = require("./entities/journal-entry.entity");
 const journal_service_1 = require("./journal.service");
 const journal_controller_1 = require("./journal.controller");
-const auth_module_1 = require("../auth/auth.module");
 let JournalModule = class JournalModule {
 };
 exports.JournalModule = JournalModule;
@@ -20,10 +19,10 @@ exports.JournalModule = JournalModule = __decorate([
     (0, common_1.Module)({
         imports: [
             typeorm_1.TypeOrmModule.forFeature([journal_entry_entity_1.JournalEntry]),
-            auth_module_1.AuthModule,
         ],
-        providers: [journal_service_1.JournalService],
         controllers: [journal_controller_1.JournalController],
+        providers: [journal_service_1.JournalService],
+        exports: [journal_service_1.JournalService],
     })
 ], JournalModule);
 //# sourceMappingURL=journal.module.js.map

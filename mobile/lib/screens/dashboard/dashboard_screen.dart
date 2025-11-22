@@ -9,7 +9,7 @@ import 'package:antibet_mobile/widgets/primary_button.dart';
 import 'package:antibet_mobile/services/auth_service.dart'; // Para o botão de Logout
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

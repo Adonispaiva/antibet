@@ -4,7 +4,7 @@ import 'package:antibet/src/core/services/user_profile_service.dart';
 
 void main() {
   // Chave de persistência principal (duplicada para o teste)
-  const String _userProfileKey = 'user_profile_data';
+  const String userProfileKey = 'user_profile_data';
   late UserProfileService service;
 
   setUp(() {
@@ -50,7 +50,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       
       // Verifica se a string esperada foi salva
-      expect(prefs.getString(_userProfileKey), equals(expectedString));
+      expect(prefs.getString(userProfileKey), equals(expectedString));
     });
 
     test('loadProfile should return empty UserProfile if no data exists', () async {
@@ -65,7 +65,7 @@ void main() {
     test('clearProfile should remove the data from SharedPreferences', () async {
       // 1. Prepara o mock com dados
       SharedPreferences.setMockInitialValues({
-        _userProfileKey: UserProfile(nickname: 'Luzia').toJson().toString(),
+        userProfileKey: UserProfile(nickname: 'Luzia').toJson().toString(),
       });
       
       // Recria o serviço para carregar o estado inicial
@@ -77,7 +77,7 @@ void main() {
       
       // 3. Verifica se a chave foi removida
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.containsKey(_userProfileKey), isFalse);
+      expect(prefs.containsKey(userProfileKey), isFalse);
     });
   });
 }

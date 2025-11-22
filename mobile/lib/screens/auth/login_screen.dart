@@ -11,7 +11,7 @@ import 'package:antibet_mobile/controllers/auth/login_controller.dart';
 // import 'package:antibet_mobile/screens/registration/register_personal_info_screen.dart'; // Para link de cadastro
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

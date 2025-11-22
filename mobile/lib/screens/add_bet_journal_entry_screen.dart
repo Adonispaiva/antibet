@@ -194,7 +194,7 @@ class _AddBetJournalEntryScreenState extends State<AddBetJournalEntryScreen> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.emoji_objects_outlined),
       ),
-      value: _selectedStrategy,
+      initialValue: _selectedStrategy,
       items: strategies.map((strategy) {
         return DropdownMenuItem(
           value: strategy,
@@ -218,7 +218,7 @@ class _AddBetJournalEntryScreenState extends State<AddBetJournalEntryScreen> {
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.check_circle_outline),
       ),
-      value: _selectedStatus,
+      initialValue: _selectedStatus,
       items: BetStatus.values.where((s) => s != BetStatus.unknown).map((status) {
         return DropdownMenuItem(
           value: status,

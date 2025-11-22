@@ -20,7 +20,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (ctx) {
         return AddGoalScreen(goal: goal);
       },

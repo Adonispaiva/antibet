@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_typography.dart';
-import 'registration_screen.dart'; // Próxima tela: Cadastro
+// Próxima tela: Cadastro
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

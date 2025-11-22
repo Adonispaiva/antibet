@@ -74,8 +74,8 @@ void main() {
     testWidgets('should show error when submitting invalid data', (WidgetTester tester) async {
       // Arrange
       await tester.pumpWidget(TestAddWrapper(
-        child: const AddEntryScreen(),
         mockNotifier: mockNotifier,
+        child: const AddEntryScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -94,8 +94,8 @@ void main() {
       when(() => mockNotifier.createEntry(tDescription, tAmount, true)).thenAnswer((_) async => true);
 
       await tester.pumpWidget(TestAddWrapper(
-        child: const AddEntryScreen(),
         mockNotifier: mockNotifier,
+        child: const AddEntryScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -127,8 +127,8 @@ void main() {
       when(() => mockNotifier.createEntry(any(), any(), any())).thenAnswer((_) async => false);
 
       await tester.pumpWidget(TestAddWrapper(
-        child: const AddEntryScreen(),
         mockNotifier: mockNotifier,
+        child: const AddEntryScreen(),
       ));
       await tester.pumpAndSettle();
 

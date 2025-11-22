@@ -4,11 +4,11 @@ import 'package:antibet/src/core/services/block_list_service.dart';
 
 void main() {
   // Chave de persistência (duplicada para o teste)
-  const String _blockListKey = 'user_block_list';
+  const String blockListKey = 'user_block_list';
   late BlockListService service;
 
   // Domínios padrão internos (para referência no teste)
-  const List<String> _defaultDomains = ['blaze.com', 'bet365.com', 'pixbet.com', 'stake.com'];
+  const List<String> defaultDomains = ['blaze.com', 'bet365.com', 'pixbet.com', 'stake.com'];
 
   setUp(() async {
     // Limpa o mock de SharedPreferences antes de cada teste
@@ -25,7 +25,7 @@ void main() {
       final list = service.getBlockList();
       
       // Deve conter todos os domínios padrão
-      for (var domain in _defaultDomains) {
+      for (var domain in defaultDomains) {
         expect(list, contains(domain));
       }
     });
@@ -33,7 +33,7 @@ void main() {
     test('should load user-added items from SharedPreferences and merge with defaults', () async {
       // 1. Prepara o mock com itens adicionados pelo usuário
       SharedPreferences.setMockInitialValues({
-        _blockListKey: ['user-added-site.com', 'app-bloqueado.apk'],
+        blockListKey: ['user-added-site.com', 'app-bloqueado.apk'],
       });
 
       // Recria o serviço para carregar o novo estado
@@ -44,7 +44,7 @@ void main() {
       
       // Deve conter os padrões E os adicionados
       expect(list, contains('user-added-site.com'));
-      expect(list.length, equals(_defaultDomains.length + 2)); 
+      expect(list.length, equals(defaultDomains.length + 2)); 
     });
   });
 
@@ -60,7 +60,7 @@ void main() {
       
       // Verifica a persistência
       final prefs = await SharedPreferences.getInstance();
-      final savedList = prefs.getStringList(_blockListKey);
+      final savedList = prefs.getStringList(blockListKey);
       expect(savedList, contains(newItem));
     });
 
@@ -91,7 +91,7 @@ void main() {
       
       // Verifica a persistência (deve ter sido removido das SharedPreferences)
       final prefs = await SharedPreferences.getInstance();
-      final savedList = prefs.getStringList(_blockListKey);
+      final savedList = prefs.getStringList(blockListKey);
       expect(savedList, isNot(contains(userItem)));
     });
 

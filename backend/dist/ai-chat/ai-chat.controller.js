@@ -14,31 +14,40 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiChatController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const ai_chat_service_1 = require("./ai-chat.service");
-const ai_chat_message_dto_1 = require("./dto/ai-chat-message.dto");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const create_chat_message_dto_1 = require("./dto/create-chat-message.dto");
 let AiChatController = class AiChatController {
     constructor(aiChatService) {
         this.aiChatService = aiChatService;
     }
-    async sendMessage(dto, req) {
-        const userId = req.user.userId;
-        return this.aiChatService.processMessage(userId, dto.message);
+    async sendMessage(req, createChatMessageDto) {
+        const user = { id: req.user.userId };
+        return this.aiChatService.processUserMessage(user, createChatMessageDto);
+    }
+    async getHistory(req) {
+        return this.aiChatService.getChatHistory(req.user.userId);
     }
 };
 exports.AiChatController = AiChatController;
 __decorate([
-    (0, common_1.Post)('message'),
-    __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Request)()),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [ai_chat_message_dto_1.AiChatMessageDto, Object]),
+    __metadata("design:paramtypes", [Object, create_chat_message_dto_1.CreateChatMessageDto]),
     __metadata("design:returntype", Promise)
 ], AiChatController.prototype, "sendMessage", null);
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AiChatController.prototype, "getHistory", null);
 exports.AiChatController = AiChatController = __decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('ai-chat'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.UsePipes)(new common_1.ValidationPipe()),
     __metadata("design:paramtypes", [ai_chat_service_1.AiChatService])
 ], AiChatController);
 //# sourceMappingURL=ai-chat.controller.js.map

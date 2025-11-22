@@ -20,8 +20,8 @@ void main() {
   });
 
   // --- Mock Data ---
-  final tUrl = "https://exemplo.com";
-  final tContent = "compre agora";
+  const tUrl = "https://exemplo.com";
+  const tContent = "compre agora";
 
   final tSuccessResponse = AdvertorialDetectorResponse(
     detector: AdvertorialResult(

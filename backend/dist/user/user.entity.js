@@ -8,14 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const typeorm_1 = require("typeorm");
-const plan_entity_1 = require("../plans/entities/plan.entity");
-const ai_log_entity_1 = require("../ai-chat/entities/ai-log.entity");
-const journal_entry_entity_1 = require("../journal/entities/journal-entry.entity");
-const goal_entity_1 = require("../goals/entities/goal.entity");
 let User = class User {
 };
 exports.User = User;
@@ -30,23 +25,23 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], User.prototype, "passwordHash", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], User.prototype, "avatarName", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], User.prototype, "birthYear", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], User.prototype, "gender", void 0);
+], User.prototype, "firstName", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
-], User.prototype, "mainConcern", void 0);
+], User.prototype, "lastName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ select: false }),
+    __metadata("design:type", String)
+], User.prototype, "passwordHash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], User.prototype, "aiTokens", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], User.prototype, "isPremium", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -55,27 +50,6 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "updatedAt", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], User.prototype, "planId", void 0);
-__decorate([
-    (0, typeorm_1.OneToOne)(() => plan_entity_1.Plan, { eager: true }),
-    (0, typeorm_1.JoinColumn)(),
-    __metadata("design:type", typeof (_a = typeof plan_entity_1.Plan !== "undefined" && plan_entity_1.Plan) === "function" ? _a : Object)
-], User.prototype, "plan", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => ai_log_entity_1.AiInteractionLog, (log) => log.user),
-    __metadata("design:type", Array)
-], User.prototype, "aiLogs", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => journal_entry_entity_1.JournalEntry, (entry) => entry.user),
-    __metadata("design:type", Array)
-], User.prototype, "journalEntries", void 0);
-__decorate([
-    (0, typeorm_1.OneToMany)(() => goal_entity_1.Goal, (goal) => goal.user),
-    __metadata("design:type", Array)
-], User.prototype, "goals", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)('users')
 ], User);

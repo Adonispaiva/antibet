@@ -7,11 +7,9 @@ class PlansService {
 
   // ... [fetchPlans method - Mantido] ...
   
-  /**
-   * Chama o Backend para iniciar uma sessão de checkout no Stripe.
-   * @param planId ID do plano a ser comprado.
-   * @returns URL de redirecionamento para o Stripe.
-   */
+  /// Chama o Backend para iniciar uma sessão de checkout no Stripe.
+  /// @param planId ID do plano a ser comprado.
+  /// @returns URL de redirecionamento para o Stripe.
   Future<String> initiateCheckout(String planId) async {
     try {
       final response = await _dio.post(
@@ -28,7 +26,7 @@ class PlansService {
       }
       return checkoutUrl;
 
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       // Tratar erros de autenticação (401) ou plano não encontrado (404)
       final errorMessage = e.response?.data?['message'] ?? 'Falha ao iniciar checkout.';
       throw Exception(errorMessage);

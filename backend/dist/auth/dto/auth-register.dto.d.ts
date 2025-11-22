@@ -1,12 +1,6 @@
-export declare enum Gender {
-    MALE = "male",
-    FEMALE = "female",
-    OTHER = "other"
-}
-export declare class AuthRegisterDto {
+export declare class RegisterDto {
     email: string;
     password: string;
-    name: string;
-    birthDate: string;
-    gender: Gender;
+    firstName: string;
+    lastName: string;
 }

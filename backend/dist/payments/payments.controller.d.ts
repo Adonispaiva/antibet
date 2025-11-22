@@ -1,14 +1,22 @@
+import { RawBodyRequest } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
-import { AuthenticatedRequest } from '@/auth/interfaces/authenticated-request.interface';
+interface RequestWithUser extends Request {
+    user: {
+        userId: string;
+        email: string;
+        role: string;
+    };
+}
 export declare class PaymentsController {
     private readonly paymentsService;
     constructor(paymentsService: PaymentsService);
-    createCheckoutSession(req: AuthenticatedRequest, createCheckoutSessionDto: CreateCheckoutSessionDto): Promise<{
-        sessionId: string;
+    createCheckoutSession(req: RequestWithUser, createCheckoutSessionDto: CreateCheckoutSessionDto): Promise<{
         url: string;
     }>;
-    handleWebhook(req: AuthenticatedRequest): Promise<{
+    handleStripeWebhook(req: RawBodyRequest<Request>): Promise<{
         received: boolean;
     }>;
+    getSubscriptionStatus(req: RequestWithUser): Promise<any>;
 }
+export {};

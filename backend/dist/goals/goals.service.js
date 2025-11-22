@@ -21,39 +21,40 @@ let GoalsService = class GoalsService {
     constructor(goalRepository) {
         this.goalRepository = goalRepository;
     }
-    async createGoal(userId, createDto) {
+    async createGoal(user, createGoalDto) {
         const newGoal = this.goalRepository.create({
-            ...createDto,
-            userId: userId,
+            ...createGoalDto,
+            user: user,
+            userId: user.id,
         });
         return this.goalRepository.save(newGoal);
     }
-    async findGoalsByUserId(userId) {
+    async findAllUserGoals(userId) {
         return this.goalRepository.find({
-            where: { userId: userId },
-            order: {
-                isCompleted: 'ASC',
-                createdAt: 'DESC',
-            },
+            where: { userId: userId, isActive: true },
+            order: { targetDate: 'ASC' },
         });
     }
-    async findOneOrFail(userId, goalId) {
+    async findOneGoal(id, userId) {
         const goal = await this.goalRepository.findOne({
-            where: { id: goalId, userId: userId },
+            where: { id: id, userId: userId },
         });
         if (!goal) {
-            throw new common_1.NotFoundException('Meta não encontrada ou não pertence ao usuário.');
+            throw new common_1.NotFoundException('Meta nao encontrada ou nao pertence a este usuario.');
         }
         return goal;
     }
-    async updateGoal(userId, goalId, updateDto) {
-        const goal = await this.findOneOrFail(userId, goalId);
-        const updatedGoal = this.goalRepository.merge(goal, updateDto);
+    async updateGoal(goal, updateGoalDto) {
+        const updatedGoal = this.goalRepository.merge(goal, updateGoalDto);
+        if (updatedGoal.currentValue >= updatedGoal.targetValue) {
+            updatedGoal.isCompleted = true;
+        }
         return this.goalRepository.save(updatedGoal);
     }
-    async deleteGoal(userId, goalId) {
-        const goal = await this.findOneOrFail(userId, goalId);
-        await this.goalRepository.remove(goal);
+    async removeGoal(id, userId) {
+        const goal = await this.findOneGoal(id, userId);
+        goal.isActive = false;
+        await this.goalRepository.save(goal);
     }
 };
 exports.GoalsService = GoalsService;

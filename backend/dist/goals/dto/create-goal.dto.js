@@ -11,24 +11,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateGoalDto = void 0;
 const class_validator_1 = require("class-validator");
+const goal_entity_1 = require("../entities/goal.entity");
 class CreateGoalDto {
 }
 exports.CreateGoalDto = CreateGoalDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)({ message: 'O título não pode estar vazio.' }),
-    (0, class_validator_1.MaxLength)(255),
+    (0, class_validator_1.IsString)({ message: 'O titulo da meta deve ser um texto.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O titulo e obrigatorio.' }),
     __metadata("design:type", String)
 ], CreateGoalDto.prototype, "title", void 0);
 __decorate([
+    (0, class_validator_1.IsString)({ message: 'A descricao deve ser um texto.' }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(2000),
     __metadata("design:type", String)
 ], CreateGoalDto.prototype, "description", void 0);
 __decorate([
+    (0, class_validator_1.IsEnum)(goal_entity_1.GoalType, { message: 'Tipo de meta invalido. Use FINANCIAL, EMOTIONAL, TECHNICAL ou OTHER.' }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)({}, { message: 'Data de conclusão deve ser uma data válida.' }),
-    __metadata("design:type", Date)
-], CreateGoalDto.prototype, "dueDate", void 0);
+    __metadata("design:type", String)
+], CreateGoalDto.prototype, "type", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)({}, { message: 'O valor alvo deve ser um numero.' }),
+    (0, class_validator_1.Min)(0, { message: 'O valor alvo nao pode ser negativo.' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'O valor alvo (targetValue) e obrigatorio.' }),
+    __metadata("design:type", Number)
+], CreateGoalDto.prototype, "targetValue", void 0);
+__decorate([
+    (0, class_validator_1.IsDateString)({}, { message: 'A data alvo (targetDate) deve ser uma string de data valida.' }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGoalDto.prototype, "targetDate", void 0);
 //# sourceMappingURL=create-goal.dto.js.map

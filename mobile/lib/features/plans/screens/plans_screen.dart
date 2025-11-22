@@ -146,7 +146,7 @@ class PlanCard extends StatelessWidget {
                   Flexible(child: Text(feature)),
                 ],
               ),
-            )).toList(),
+            )),
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton(

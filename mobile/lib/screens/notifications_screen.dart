@@ -42,7 +42,7 @@ class NotificationsScreen extends StatelessWidget {
   ) {
     // Define o estilo para destaque de notificação não lida
     final bool isUnread = !notification.isRead;
-    final Color? leadingColor = isUnread ? Theme.of(context).colorScheme.primary : Colors.grey.shade600;
+    final Color leadingColor = isUnread ? Theme.of(context).colorScheme.primary : Colors.grey.shade600;
 
     return ListTile(
       leading: Icon(

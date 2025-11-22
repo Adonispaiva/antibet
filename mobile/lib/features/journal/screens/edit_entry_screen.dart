@@ -94,7 +94,7 @@ class _EditEntryScreenState extends ConsumerState<EditEntryScreen> {
           children: [
             TextField(
               controller: _amountController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Valor (R\$)'),
             ),
             const SizedBox(height: 16),

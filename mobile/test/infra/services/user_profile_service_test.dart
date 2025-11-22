@@ -108,7 +108,7 @@ void main() {
 
     test('03. updateUserProfile deve retornar o UserModel atualizado em caso de sucesso', () async {
       final originalUser = UserModel.fromJson(profileService.mockUserJson);
-      final updatedName = 'Adonis Paiva';
+      const updatedName = 'Adonis Paiva';
       
       final userToUpdate = originalUser.copyWith(name: updatedName);
       

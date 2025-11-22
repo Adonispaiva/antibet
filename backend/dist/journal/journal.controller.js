@@ -11,59 +11,89 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JournalController = void 0;
 const common_1 = require("@nestjs/common");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const authenticated_request_interface_1 = require("../auth/interfaces/authenticated-request.interface");
+const passport_1 = require("@nestjs/passport");
 const journal_service_1 = require("./journal.service");
 const create_journal_entry_dto_1 = require("./dto/create-journal-entry.dto");
+const update_journal_entry_dto_1 = require("./dto/update-journal-entry.dto");
 let JournalController = class JournalController {
     constructor(journalService) {
         this.journalService = journalService;
     }
-    create(req, createDto) {
-        const userId = req.user.userId;
-        return this.journalService.createEntry(userId, createDto);
+    async create(req, createJournalEntryDto) {
+        const user = { id: req.user.userId };
+        return this.journalService.createEntry(user, createJournalEntryDto);
     }
-    findAll(req) {
-        const userId = req.user.userId;
-        return this.journalService.findEntriesByUserId(userId);
+    async findAll(req) {
+        return this.journalService.findAllEntries(req.user.userId);
     }
-    remove(req, entryId) {
-        const userId = req.user.userId;
-        return this.journalService.deleteEntry(userId, entryId);
+    async findOne(id, req) {
+        const entry = await this.journalService.findOneEntry(id, req.user.userId);
+        if (!entry) {
+            throw new common_1.NotFoundException('Entrada do diario nao encontrada ou nao pertence a este usuario.');
+        }
+        return entry;
+    }
+    async update(id, req, updateJournalEntryDto) {
+        const entry = await this.journalService.findOneEntry(id, req.user.userId);
+        if (!entry) {
+            throw new common_1.NotFoundException('Entrada do diario nao encontrada.');
+        }
+        return this.journalService.updateEntry(entry, updateJournalEntryDto);
+    }
+    async remove(id, req) {
+        const entry = await this.journalService.findOneEntry(id, req.user.userId);
+        if (!entry) {
+            throw new common_1.NotFoundException('Entrada do diario nao encontrada.');
+        }
+        return this.journalService.removeEntry(id, req.user.userId);
     }
 };
 exports.JournalController = JournalController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _a : Object, create_journal_entry_dto_1.CreateJournalEntryDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, create_journal_entry_dto_1.CreateJournalEntryDto]),
+    __metadata("design:returntype", Promise)
 ], JournalController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _b : Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], JournalController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _c : Object, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], JournalController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, update_journal_entry_dto_1.UpdateJournalEntryDto]),
+    __metadata("design:returntype", Promise)
+], JournalController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], JournalController.prototype, "remove", null);
 exports.JournalController = JournalController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('journal'),
     __metadata("design:paramtypes", [journal_service_1.JournalService])
 ], JournalController);

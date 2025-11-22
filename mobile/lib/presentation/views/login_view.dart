@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 // Importação do Notifier da Camada de Apresentação
 import '../../notifiers/auth_notifier.dart'; 
 // Importação para tratamento de exceção
-import '../../infra/services/auth_service.dart'; 
 // Importação da View de Registro
 import 'register_view.dart'; 
 

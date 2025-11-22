@@ -87,7 +87,7 @@ void main() {
     });
   });
 
-  group('AppUsageTrackerNotifier - Data Loading and Metrics', () => {
+  group('AppUsageTrackerNotifier - Data Loading and Metrics', () {
     test('fetchUsageDataForAnalytics should update state and calculate high risk time', () async {
       // Setup: Mocka a permissão como True para permitir a busca
       when(mockService.checkUsagePermission()).thenAnswer((_) => Future.value(true));

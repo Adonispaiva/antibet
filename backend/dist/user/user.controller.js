@@ -14,32 +14,32 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const user_service_1 = require("./user.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    async getMyProfile(req) {
-        const userId = req.user.userId;
-        const user = await this.userService.findById(userId);
-        if (!user) {
-            return { message: 'Usuário não encontrado.' };
+    async getProfile(req) {
+        const user = await this.userService.findOne(req.user.userId);
+        if (user) {
+            const { password, ...result } = user;
+            return result;
         }
-        return user;
+        return null;
     }
 };
 exports.UserController = UserController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('me'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], UserController.prototype, "getMyProfile", null);
+], UserController.prototype, "getProfile", null);
 exports.UserController = UserController = __decorate([
-    (0, common_1.Controller)('user'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

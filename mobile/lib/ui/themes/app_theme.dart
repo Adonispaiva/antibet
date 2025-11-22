@@ -16,7 +16,7 @@ class AppTheme {
     
     // Configurações do App Bar (Fundo branco, texto escuro)
     appBarTheme: const AppBarTheme(
-      color: Colors.white,
+      backgroundColor: Colors.white,
       foregroundColor: Colors.black,
       elevation: 1,
     ),
@@ -67,7 +67,7 @@ class AppTheme {
     
     // Configurações do App Bar (Fundo escuro, texto claro)
     appBarTheme: const AppBarTheme(
-      color: Color(0xFF1E1E1E), // Preto mais suave
+      backgroundColor: Color(0xFF1E1E1E), // Preto mais suave
       foregroundColor: Colors.white,
       elevation: 1,
     ),

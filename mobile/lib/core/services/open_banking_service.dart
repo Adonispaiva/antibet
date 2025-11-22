@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; // Necessário para DateTime
+// Necessário para DateTime
 import 'dart:math';
 
 // O Serviço de Open Banking simula a integração segura com a API do banco/agregador

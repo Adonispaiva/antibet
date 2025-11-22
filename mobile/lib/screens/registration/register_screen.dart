@@ -129,6 +129,8 @@ class RegisterScreen extends StatelessWidget {
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
+                    onPressed:
+                        isLoading ? null : () => _onRegisterPressed(context),
                     child: isLoading
                         ? const CircularProgressIndicator(
                             valueColor:
@@ -138,17 +140,15 @@ class RegisterScreen extends StatelessWidget {
                             'CRIAR CONTA',
                             style: TextStyle(fontSize: 18),
                           ),
-                    onPressed:
-                        isLoading ? null : () => _onRegisterPressed(context),
                   ),
                 ),
                 const SizedBox(height: 16),
 
                 // --- Botão de Voltar (Login) ---
                 TextButton(
-                  child: const Text('Já tem conta? Fazer Login'),
                   onPressed:
                       isLoading ? null : () => Navigator.of(context).pop(),
+                  child: const Text('Já tem conta? Fazer Login'),
                 ),
               ],
             ),

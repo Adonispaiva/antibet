@@ -78,7 +78,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
 
       // Define o estado como deslogado
       state = const AsyncValue.data(null);
-    } catch (e, st) {
+    } catch (e) {
       // Se o logout na API falhar, o token local já foi limpo no `AuthService`, o que é o mais importante.
       state = const AsyncValue.data(null); 
     }

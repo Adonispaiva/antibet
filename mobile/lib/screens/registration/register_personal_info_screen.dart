@@ -11,7 +11,7 @@ import 'package:antibet_mobile/widgets/primary_button.dart';
 import 'package:antibet_mobile/controllers/registration/register_controller.dart'; // NOVO
 
 class RegisterPersonalInfoScreen extends StatelessWidget {
-  const RegisterPersonalInfoScreen({Key? key}) : super(key: key);
+  const RegisterPersonalInfoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +77,7 @@ class RegisterPersonalInfoScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.border),
               ),
               child: Obx(() => DropdownButtonFormField<String>( // Obx para reagir à mudança inicial
-                value: controller.gender.value, // Usa o estado reativo
+                initialValue: controller.gender.value, // Usa o estado reativo
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Selecione',

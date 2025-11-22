@@ -8,7 +8,7 @@ import 'package:antibet_mobile/widgets/primary_button.dart';
 import 'package:antibet_mobile/controllers/onboarding/onboarding_controller.dart'; 
 
 class ConsentScreen extends StatelessWidget {
-  const ConsentScreen({Key? key}) : super(key: key);
+  const ConsentScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

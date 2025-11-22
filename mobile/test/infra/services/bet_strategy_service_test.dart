@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // Dependências do Service e Model
 import 'package:antibet_mobile/models/strategy_model.dart';

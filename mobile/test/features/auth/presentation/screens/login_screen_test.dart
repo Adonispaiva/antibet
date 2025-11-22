@@ -78,9 +78,9 @@ void main() {
       when(() => mockAuthService.login(tEmail, tPassword)).thenAnswer((_) async => tToken);
 
       await tester.pumpWidget(TestLoginWrapper(
-        child: const LoginScreen(),
         mockAuthService: mockAuthService,
         mockStorageService: mockStorageService,
+        child: const LoginScreen(),
       ));
 
       // Act: Preenche os campos
@@ -113,9 +113,9 @@ void main() {
           .thenThrow(Exception(tErrorMessage));
 
       await tester.pumpWidget(TestLoginWrapper(
-        child: const LoginScreen(),
         mockAuthService: mockAuthService,
         mockStorageService: mockStorageService,
+        child: const LoginScreen(),
       ));
 
       // Act: Toca no botão de login

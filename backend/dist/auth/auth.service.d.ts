@@ -1,37 +1,21 @@
-import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { AuthRegisterDto } from './dto/auth-register.dto';
-import { AuthLoginDto } from './dto/auth-login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { RegisterDto } from './dto/register.dto';
+import { User } from '../user/user.entity';
 export declare class AuthService {
     private userService;
     private jwtService;
     constructor(userService: UserService, jwtService: JwtService);
-    private hashPassword;
-    private comparePassword;
-    register(registerDto: AuthRegisterDto): Promise<{
+    validateUser(email: string, pass: string): Promise<{
+        user: Omit<User, 'passwordHash'>;
         accessToken: string;
-        user: {
-            id: any;
-            email: any;
-            name: any;
-        };
     }>;
-    login(loginDto: AuthLoginDto): Promise<{
+    register(registrationData: RegisterDto): Promise<{
+        user: Omit<User, 'passwordHash'>;
         accessToken: string;
-        user: {
-            id: any;
-            email: any;
-            name: any;
-        };
     }>;
-    getProfile(userId: string): Promise<{
-        id: any;
-        email: any;
-        name: any;
-        plan: {
-            id: any;
-            name: any;
-            price: any;
-        };
-    }>;
+    validateTokenPayload(payload: {
+        sub: string;
+        email: string;
+    }): Promise<User | null>;
 }

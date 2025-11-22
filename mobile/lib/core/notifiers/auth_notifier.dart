@@ -23,7 +23,7 @@ class AuthNotifier extends ChangeNotifier {
     
     // Simulação de sucesso no login
     _isLoggedIn = true;
-    _userToken = 'simulated_jwt_token_for_${email}';
+    _userToken = 'simulated_jwt_token_for_$email';
     
     // Notifica todos os widgets que estão escutando o AuthNotifier sobre a mudança de estado.
     notifyListeners();

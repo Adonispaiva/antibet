@@ -26,7 +26,7 @@ class RecommendationCard extends StatelessWidget {
     final recommendedStrategy = strategies.firstWhere(
       (s) => s.id == recommendation.strategyId,
       // Se não encontrar, retorna null (ou uma estratégia vazia se StrategyModel suportasse)
-      orElse: () => null!,
+      orElse: () => null,
     );
     
     final String strategyName = recommendedStrategy?.title ?? 'Estratégia Desconhecida';

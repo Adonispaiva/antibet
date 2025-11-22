@@ -15,7 +15,7 @@ class UserSettingsNotifier extends StateNotifier<AsyncValue<UserSettingsModel>> 
     try {
       final settings = _service.loadSettings();
       state = AsyncValue.data(settings);
-    } catch (e, stack) {
+    } catch (e) {
       // Se a leitura falhar, assume as configurações iniciais
       state = AsyncValue.data(UserSettingsModel.initial());
       // Loga o erro, mas não bloqueia o app

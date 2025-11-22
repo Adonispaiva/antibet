@@ -25,7 +25,7 @@ void main() {
   });
 
   group('JournalNotifier', () {
-    final tJournal = JournalModel(
+    const tJournal = JournalModel(
       entries: [],
       totalInvested: 0,
       totalWins: 0,

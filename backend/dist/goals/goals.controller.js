@@ -11,73 +11,78 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoalsController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const goals_service_1 = require("./goals.service");
 const create_goal_dto_1 = require("./dto/create-goal.dto");
 const update_goal_dto_1 = require("./dto/update-goal.dto");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const authenticated_request_interface_1 = require("../auth/interfaces/authenticated-request.interface");
 let GoalsController = class GoalsController {
     constructor(goalsService) {
         this.goalsService = goalsService;
     }
-    create(req, createGoalDto) {
-        const userId = req.user.userId;
-        return this.goalsService.createGoal(userId, createGoalDto);
+    async create(req, createGoalDto) {
+        const user = { id: req.user.userId };
+        return this.goalsService.createGoal(user, createGoalDto);
     }
-    findAll(req) {
-        const userId = req.user.userId;
-        return this.goalsService.findGoalsByUserId(userId);
+    async findAll(req) {
+        return this.goalsService.findAllUserGoals(req.user.userId);
     }
-    update(req, goalId, updateGoalDto) {
-        const userId = req.user.userId;
-        return this.goalsService.updateGoal(userId, goalId, updateGoalDto);
+    async findOne(id, req) {
+        return this.goalsService.findOneGoal(id, req.user.userId);
     }
-    remove(req, goalId) {
-        const userId = req.user.userId;
-        return this.goalsService.deleteGoal(userId, goalId);
+    async update(id, req, updateGoalDto) {
+        const goal = await this.goalsService.findOneGoal(id, req.user.userId);
+        return this.goalsService.updateGoal(goal, updateGoalDto);
+    }
+    async remove(id, req) {
+        return this.goalsService.removeGoal(id, req.user.userId);
     }
 };
 exports.GoalsController = GoalsController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _a : Object, create_goal_dto_1.CreateGoalDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, create_goal_dto_1.CreateGoalDto]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Req)()),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _b : Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], GoalsController.prototype, "findOne", null);
+__decorate([
     (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _c : Object, String, update_goal_dto_1.UpdateGoalDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object, update_goal_dto_1.UpdateGoalDto]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _d : Object, String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], GoalsController.prototype, "remove", null);
 exports.GoalsController = GoalsController = __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('goals'),
     __metadata("design:paramtypes", [goals_service_1.GoalsService])
 ], GoalsController);

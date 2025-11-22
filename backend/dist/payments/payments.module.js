@@ -8,26 +8,29 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const payments_service_1 = require("./payments.service");
 const payments_controller_1 = require("./payments.controller");
 const auth_module_1 = require("../auth/auth.module");
-const plans_module_1 = require("../plans/plans.module");
-const typeorm_1 = require("@nestjs/typeorm");
-const plan_entity_1 = require("../plans/entities/plan.entity");
 const user_module_1 = require("../user/user.module");
+const subscription_entity_1 = require("./entities/subscription.entity");
+const payment_log_entity_1 = require("./entities/payment-log.entity");
 let PaymentsModule = class PaymentsModule {
 };
 exports.PaymentsModule = PaymentsModule;
 exports.PaymentsModule = PaymentsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            auth_module_1.AuthModule,
-            plans_module_1.PlansModule,
-            typeorm_1.TypeOrmModule.forFeature([plan_entity_1.Plan]),
-            user_module_1.UserModule,
+            typeorm_1.TypeOrmModule.forFeature([subscription_entity_1.Subscription, payment_log_entity_1.PaymentLog]),
+            (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
+            (0, common_1.forwardRef)(() => user_module_1.UserModule),
         ],
-        providers: [payments_service_1.PaymentsService],
         controllers: [payments_controller_1.PaymentsController],
+        providers: [payments_service_1.PaymentsService],
+        exports: [
+            payments_service_1.PaymentsService,
+            typeorm_1.TypeOrmModule,
+        ],
     })
 ], PaymentsModule);
 //# sourceMappingURL=payments.module.js.map

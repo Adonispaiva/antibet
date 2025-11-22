@@ -59,7 +59,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             Expanded(
               child: TextField(
                 controller: _textController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Digite sua mensagem...',
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,

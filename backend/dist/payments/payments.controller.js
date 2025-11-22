@@ -11,45 +11,59 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const payments_service_1 = require("./payments.service");
 const create_checkout_session_dto_1 = require("./dto/create-checkout-session.dto");
-const jwt_auth_guard_1 = require("@/auth/guards/jwt-auth.guard");
-const authenticated_request_interface_1 = require("@/auth/interfaces/authenticated-request.interface");
 let PaymentsController = class PaymentsController {
     constructor(paymentsService) {
         this.paymentsService = paymentsService;
     }
     async createCheckoutSession(req, createCheckoutSessionDto) {
-        return this.paymentsService.createCheckoutSession(req.user, createCheckoutSessionDto.planId);
+        const userId = req.user.userId;
+        const { planId } = createCheckoutSessionDto;
+        return this.paymentsService.createCheckoutSession(userId, planId);
     }
-    async handleWebhook(req) {
+    async handleStripeWebhook(req) {
+        const signature = req.headers['stripe-signature'];
         if (!req.rawBody) {
-            throw new common_1.BadRequestException('Corpo (raw body) ausente na requisição.');
+            throw new Error('Raw body buffer nao encontrado. Configure o RawBodyMiddleware.');
         }
-        return this.paymentsService.handleWebhook(req.rawBody);
+        return this.paymentsService.handleStripeWebhook(signature, req.rawBody);
+    }
+    async getSubscriptionStatus(req) {
+        const userId = req.user.userId;
+        return this.subscriptionService.findByUserId(userId);
     }
 };
 exports.PaymentsController = PaymentsController;
 __decorate([
-    (0, common_1.Post)('create-checkout-session'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Req)()),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)('checkout'),
+    __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_a = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _a : Object, typeof (_b = typeof create_checkout_session_dto_1.CreateCheckoutSessionDto !== "undefined" && create_checkout_session_dto_1.CreateCheckoutSessionDto) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [Object, create_checkout_session_dto_1.CreateCheckoutSessionDto]),
     __metadata("design:returntype", Promise)
 ], PaymentsController.prototype, "createCheckoutSession", null);
 __decorate([
-    (0, common_1.Post)('webhook'),
-    __param(0, (0, common_1.Req)()),
+    (0, common_1.Post)('webhook/stripe'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof authenticated_request_interface_1.AuthenticatedRequest !== "undefined" && authenticated_request_interface_1.AuthenticatedRequest) === "function" ? _c : Object]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], PaymentsController.prototype, "handleWebhook", null);
+], PaymentsController.prototype, "handleStripeWebhook", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('status'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], PaymentsController.prototype, "getSubscriptionStatus", null);
 exports.PaymentsController = PaymentsController = __decorate([
     (0, common_1.Controller)('payments'),
     __metadata("design:paramtypes", [payments_service_1.PaymentsService])

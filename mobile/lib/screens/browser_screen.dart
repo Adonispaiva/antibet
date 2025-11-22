@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 class BrowserScreen extends StatefulWidget {
   // Rota ou configuração existente
-  const BrowserScreen({Key? key}) : super(key: key);
+  const BrowserScreen({super.key});
 
   @override
   _BrowserScreenState createState() => _BrowserScreenState();

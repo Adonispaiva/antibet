@@ -117,10 +117,10 @@ void main() {
       mockJournalNotifier.setState(AsyncValue.data(tJournal));
       
       await tester.pumpWidget(TestJournalWrapper(
-        child: const JournalScreen(),
         mockJournalNotifier: mockJournalNotifier,
         mockAuthNotifier: mockAuthNotifier,
         mockAuthService: mockAuthService,
+        child: const JournalScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -134,10 +134,10 @@ void main() {
       mockJournalNotifier.setState(AsyncValue.data(tJournal));
       
       await tester.pumpWidget(TestJournalWrapper(
-        child: const JournalScreen(),
         mockJournalNotifier: mockJournalNotifier,
         mockAuthNotifier: mockAuthNotifier,
         mockAuthService: mockAuthService,
+        child: const JournalScreen(),
       ));
       await tester.pumpAndSettle();
 
@@ -154,10 +154,10 @@ void main() {
       mockJournalNotifier.setState(AsyncValue.data(tJournal));
       
       await tester.pumpWidget(TestJournalWrapper(
-        child: const JournalScreen(),
         mockJournalNotifier: mockJournalNotifier,
         mockAuthNotifier: mockAuthNotifier,
         mockAuthService: mockAuthService,
+        child: const JournalScreen(),
       ));
       await tester.pumpAndSettle();
 

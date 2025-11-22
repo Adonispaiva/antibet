@@ -14,7 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Fake Notifier para UserProvider (necessário para o AppBar)
 class FakeUserNotifier extends StateNotifier<UserState> {
-  FakeUserNotifier(UserState initialState) : super(initialState);
+  FakeUserNotifier(super.initialState);
   void setTestState(UserState newState) => state = newState;
   
   // Simula o logout para verificação de chamadas
@@ -28,7 +28,7 @@ class FakeUserNotifier extends StateNotifier<UserState> {
 
 // Fake Notifier para JournalProvider
 class FakeJournalNotifier extends StateNotifier<JournalState> {
-  FakeJournalNotifier(JournalState initialState) : super(initialState);
+  FakeJournalNotifier(super.initialState);
 
   int getJournalCallCount = 0;
   String? lastDate;

@@ -18,7 +18,7 @@ class ConnectionNotifier extends ChangeNotifier {
     
     // Por enquanto, apenas um placeholder para um check de rede simulado.
     // Para fins de teste inicial, mantemos como true.
-    final bool currentStatus = true; 
+    const bool currentStatus = true; 
 
     if (_isConnected != currentStatus) {
       _isConnected = currentStatus;

@@ -92,7 +92,7 @@ void main() {
     test('deve transicionar para JournalError em caso de falha na API',
         () async {
       // Arrange
-      final tFailure = ApiFailure(message: 'Erro na API');
+      const tFailure = ApiFailure(message: 'Erro na API');
       when(mockJournalService.getJournal(tDate))
           .thenAnswer((_) async => Left(tFailure));
 
@@ -148,7 +148,7 @@ void main() {
     test('deve retornar JournalError e reverter o estado em caso de falha',
         () async {
       // Arrange
-      final tFailure = ApiFailure(message: 'Falha ao salvar');
+      const tFailure = ApiFailure(message: 'Falha ao salvar');
       when(mockJournalService.createEntry(any))
           .thenAnswer((_) async => Left(tFailure));
 

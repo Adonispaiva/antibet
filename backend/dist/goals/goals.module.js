@@ -12,7 +12,6 @@ const typeorm_1 = require("@nestjs/typeorm");
 const goal_entity_1 = require("./entities/goal.entity");
 const goals_service_1 = require("./goals.service");
 const goals_controller_1 = require("./goals.controller");
-const auth_module_1 = require("../auth/auth.module");
 let GoalsModule = class GoalsModule {
 };
 exports.GoalsModule = GoalsModule;
@@ -20,10 +19,10 @@ exports.GoalsModule = GoalsModule = __decorate([
     (0, common_1.Module)({
         imports: [
             typeorm_1.TypeOrmModule.forFeature([goal_entity_1.Goal]),
-            auth_module_1.AuthModule,
         ],
-        providers: [goals_service_1.GoalsService],
         controllers: [goals_controller_1.GoalsController],
+        providers: [goals_service_1.GoalsService],
+        exports: [goals_service_1.GoalsService],
     })
 ], GoalsModule);
 //# sourceMappingURL=goals.module.js.map

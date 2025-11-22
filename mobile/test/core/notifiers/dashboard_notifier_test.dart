@@ -76,7 +76,7 @@ void main() {
       // Garante que os dados foram carregados primeiro
       await Future.microtask(() {}); 
       
-      final goalToCompleteId = 'g1'; // Meta inicialmente false (no mock)
+      const goalToCompleteId = 'g1'; // Meta inicialmente false (no mock)
       
       // 1. Verifica o estado inicial (Mock é false)
       expect(notifier.userGoals.firstWhere((g) => g.id == goalToCompleteId).isCompleted, isFalse);

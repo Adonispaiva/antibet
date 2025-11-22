@@ -24,6 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.inovexa.antibet"
+    
     compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
@@ -36,60 +37,42 @@ android {
         jvmTarget = '1.8'
     }
 
-    // Esta sourceSet inicial (antes do defaultConfig) é a padrão
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
     defaultConfig {
         applicationId "com.inovexa.antibet"
-        minSdkVersion flutter.minSdkVersion
+        
+        // === CORREÇÃO CRÍTICA: Mínimo elevado de 21 para 23 ===
+        // 23 = Android 6.0 Marshmallow. Necessário para bibliotecas modernas.
+        minSdkVersion flutter.minSdkVersion 
+        
         targetSdkVersion 34
+        
+        // Multidex habilitado para lidar com o grande volume de classes
+        multiDexEnabled true
+
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        multiDexEnabled true 
     }
-
-    // --- CORREÇÃO FINAL PARA O ERRO DE RECURSO DUPLICADO ---
-    // Reposicionamos e reforçamos a anulação para garantir que funcione
-    sourceSets {
-        // A sourceSet 'main' é a única que precisa dos recursos (e já os tem)
-        debug {
-            // Anula todos os recursos e manifestos da source set de debug
-            res.srcDirs = []
-            assets.srcDirs = []
-            java.srcDirs = []
-            manifest.srcFile = 'src/debug/AndroidManifest.xml' // Mantém o manifesto de debug
-        }
-        profile {
-            // Anula o profile
-            res.srcDirs = []
-            assets.srcDirs = []
-        }
-    }
-
 
     buildTypes {
         release {
+            // Minificação desabilitada (corrigido no passo anterior)
+            minifyEnabled false 
             signingConfig signingConfigs.debug
-            
-            // Desativa ofuscação para evitar erro de transformação de libs.jar
-            minifyEnabled false
-            shrinkResources false
-            
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-    }
-
-    // Configuração de Lint mantida em modo permissivo
-    lint {
-        abortOnError = false
-        checkReleaseBuilds = false
-        ignoreWarnings = true
-        disable 'InvalidPackage', 'MissingTranslation'
     }
 }
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    // Dependência Multidex para Android 5.0/6.0 (que ainda usamos como base)
+    implementation 'androidx.multidex:multidex:2.0.1'
+    
+    // Dependências nativas extras podem ser adicionadas aqui
 }

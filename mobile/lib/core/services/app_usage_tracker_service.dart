@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart'; // Necessário para Duration, embora não seja o foco
+// Necessário para Duration, embora não seja o foco
 
 // Este serviço é a ponte entre o Flutter e o código nativo (Kotlin/Swift)
 // para monitorar o tempo de uso de aplicativos/sites (crucial para o Analytics).

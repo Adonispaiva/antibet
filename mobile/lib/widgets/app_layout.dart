@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_typography.dart';
 
-/**
- * Widget de layout base usado por todas as telas do aplicativo.
- * Garante consistência de fundo, tema e estrutura básica.
- */
+/// Widget de layout base usado por todas as telas do aplicativo.
+/// Garante consistência de fundo, tema e estrutura básica.
 class AppLayout extends StatelessWidget {
   final String? title;
   final Widget body;

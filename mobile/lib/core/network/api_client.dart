@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import '../config/app_config.dart';
 
 /// Classe central para fazer requisições HTTP para a API do Backend.
@@ -31,7 +30,7 @@ class ApiClient {
       final response = await http.get(
         Uri.parse('$_baseUrl/$url'),
         headers: _getHeaders(authToken),
-      ).timeout(Duration(seconds: AppConfig.apiTimeoutSeconds));
+      ).timeout(const Duration(seconds: AppConfig.apiTimeoutSeconds));
 
       return _processResponse(response);
     } on SocketException {
@@ -48,7 +47,7 @@ class ApiClient {
         Uri.parse('$_baseUrl/$url'),
         headers: _getHeaders(authToken),
         body: json.encode(body),
-      ).timeout(Duration(seconds: AppConfig.apiTimeoutSeconds));
+      ).timeout(const Duration(seconds: AppConfig.apiTimeoutSeconds));
 
       return _processResponse(response);
     } on SocketException {
@@ -63,7 +62,7 @@ class ApiClient {
         Uri.parse('$_baseUrl/$url'),
         headers: _getHeaders(authToken),
         body: json.encode(body),
-      ).timeout(Duration(seconds: AppConfig.apiTimeoutSeconds));
+      ).timeout(const Duration(seconds: AppConfig.apiTimeoutSeconds));
 
       return _processResponse(response);
     } on SocketException {
@@ -77,7 +76,7 @@ class ApiClient {
       final response = await http.delete(
         Uri.parse('$_baseUrl/$url'),
         headers: _getHeaders(authToken),
-      ).timeout(Duration(seconds: AppConfig.apiTimeoutSeconds));
+      ).timeout(const Duration(seconds: AppConfig.apiTimeoutSeconds));
 
       return _processResponse(response);
     } on SocketException {

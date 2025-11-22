@@ -146,10 +146,10 @@ class LoginScreen extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     key: const ValueKey('loginButton'),
+                    onPressed: isLoading ? null : () => _onLoginPressed(context),
                     child: isLoading
                         ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
                         : const Text('ENTRAR', style: TextStyle(fontSize: 18)),
-                    onPressed: isLoading ? null : () => _onLoginPressed(context),
                   ),
                 ),
                 // Botão de navegação para registro (Mockado)

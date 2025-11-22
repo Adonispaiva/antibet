@@ -177,7 +177,7 @@ class _EditEntryScreenState extends ConsumerState<EditEntryScreen> {
                             _isWin = newValue;
                           });
                         },
-                        activeColor: Colors.green,
+                        activeThumbColor: Colors.green,
                         inactiveThumbColor: Colors.red,
                         inactiveTrackColor: Colors.red[100],
                       ),

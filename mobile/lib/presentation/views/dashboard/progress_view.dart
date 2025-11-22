@@ -52,7 +52,7 @@ class ProgressView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Metas Pessoais (${completedGoals}/${totalGoals})',
+                  'Metas Pessoais ($completedGoals/$totalGoals)',
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 IconButton(

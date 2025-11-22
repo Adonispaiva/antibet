@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 // Fake Notifier para JournalProvider
 class FakeJournalNotifier extends StateNotifier<JournalState> {
-  FakeJournalNotifier(JournalState initialState) : super(initialState);
+  FakeJournalNotifier(super.initialState);
 
   int createEntryCallCount = 0;
   JournalEntryModel? lastEntryCreated;

@@ -1,17 +1,13 @@
 buildscript {
-    // Versão do Kotlin alinhada com os metadados binários das suas libs
-    ext.kotlin_version = '1.9.0'
-    
+    ext.kotlin_version = '1.7.10' // FINAL FIX: Regride para versão de altíssima estabilidade
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        // Plugin do Android 7.4.2: A última versão estável que roda perfeitamente no Java 11
-        classpath 'com.android.tools.build:gradle:7.4.2'
-        
-        // Plugin do Kotlin
+        // FINAL FIX: AGP regredido para versão 7.3.0 (Combinação de ouro para estabilidade com JDK 17)
+        classpath 'com.android.tools.build:gradle:7.3.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }

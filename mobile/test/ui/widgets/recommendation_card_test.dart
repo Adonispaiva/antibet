@@ -16,7 +16,7 @@ void main() {
   group('RecommendationCard Widget Tests', () {
     testWidgets('Card renders recommendation data correctly', (WidgetTester tester) async {
       // 1. Setup Mock Data for a strong recommendation
-      final mockRecommendation = StrategyRecommendationModel(
+      const mockRecommendation = StrategyRecommendationModel(
         id: 'rec-1',
         title: 'High Confidence Strategy',
         rationale: 'Historical data shows strong win rates for similar profiles.',
@@ -48,7 +48,7 @@ void main() {
 
     testWidgets('Card renders a low confidence scenario', (WidgetTester tester) async {
       // 1. Setup Mock Data for a low confidence scenario
-      final lowConfidenceRecommendation = StrategyRecommendationModel(
+      const lowConfidenceRecommendation = StrategyRecommendationModel(
         id: 'rec-2',
         title: 'Low Confidence Strategy',
         rationale: 'Insufficient recent data to guarantee success. Proceed with caution.',

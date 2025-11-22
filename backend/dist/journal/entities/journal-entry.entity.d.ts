@@ -1,15 +1,18 @@
-import { User } from '../../user/user.entity';
-export declare enum JournalMood {
+import { User } from '../../user/entities/user.entity';
+export declare enum JournalSentiment {
     POSITIVE = "positive",
     NEUTRAL = "neutral",
-    NEGATIVE = "negative",
-    VERY_NEGATIVE = "very_negative"
+    NEGATIVE = "negative"
 }
 export declare class JournalEntry {
     id: string;
-    content: string;
-    mood: JournalMood;
-    createdAt: Date;
     user: User;
     userId: string;
+    content: string;
+    sentiment: JournalSentiment;
+    pnlValue: number;
+    tags: string[];
+    tradeDate: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }

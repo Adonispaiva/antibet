@@ -9,7 +9,7 @@ import 'package:antibet_mobile/widgets/primary_button.dart';
 import 'package:antibet_mobile/controllers/registration/register_controller.dart'; 
 
 class RegisterCredentialsScreen extends StatelessWidget {
-  const RegisterCredentialsScreen({Key? key}) : super(key: key);
+  const RegisterCredentialsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

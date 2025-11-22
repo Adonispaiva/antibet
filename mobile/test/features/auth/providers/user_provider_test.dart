@@ -143,7 +143,7 @@ void main() {
           .thenAnswer((_) async => tUserModelString);
       // Mock: API falha na validação
       when(mockAuthService.validateToken(tUserModel.token))
-          .thenAnswer((_) async => Left(ApiFailure(message: 'API Error')));
+          .thenAnswer((_) async => Left(const ApiFailure(message: 'API Error')));
 
       // Act
       final loadFuture = notifierReader().loadUser();
@@ -194,7 +194,7 @@ void main() {
     test('deve transicionar para UserError em caso de falha na autenticação',
         () async {
       // Arrange
-      final tFailure = AuthFailure(message: 'Credenciais inválidas');
+      const tFailure = AuthFailure(message: 'Credenciais inválidas');
       when(mockAuthService.login(tEmail, tPassword))
           .thenAnswer((_) async => Left(tFailure));
 

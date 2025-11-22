@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 /// Exibe o resultado da análise de advertorial, escutando
 /// as mudanças do [AdvertorialDetectorProvider].
 class AdvertorialWarningCard extends StatelessWidget {
-  const AdvertorialWarningCard({Key? key}) : super(key: key);
+  const AdvertorialWarningCard({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -11,70 +11,52 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const jwt_1 = require("@nestjs/jwt");
 const user_service_1 = require("../user/user.service");
+const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
 let AuthService = class AuthService {
     constructor(userService, jwtService) {
         this.userService = userService;
         this.jwtService = jwtService;
     }
-    async hashPassword(password) {
-        const salt = await bcrypt.genSalt();
-        return bcrypt.hash(password, salt);
-    }
-    async comparePassword(password, hash) {
-        return bcrypt.compare(password, hash);
-    }
-    async register(registerDto) {
-        registerDto.password = await this.hashPassword(registerDto.password);
-        const user = await this.userService.create(registerDto);
-        const payload = { id: user.id, email: user.email };
+    async validateUser(email, pass) {
+        const user = await this.userService.findByEmail(email);
+        if (!user) {
+            throw new common_1.UnauthorizedException('Credenciais inválidas: Usuário não encontrado.');
+        }
+        const isPasswordMatch = await bcrypt.compare(pass, user.passwordHash);
+        if (!isPasswordMatch) {
+            throw new common_1.UnauthorizedException('Credenciais inválidas: Senha incorreta.');
+        }
+        const { passwordHash, ...safeUser } = user;
+        const payload = { email: user.email, sub: user.id };
         const accessToken = this.jwtService.sign(payload);
         return {
+            user: safeUser,
             accessToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-            },
         };
     }
-    async login(loginDto) {
-        const user = await this.userService.findByEmail(loginDto.email);
-        if (!user) {
-            throw new common_1.UnauthorizedException('Credenciais inválidas.');
+    async register(registrationData) {
+        const existingUser = await this.userService.findByEmail(registrationData.email);
+        if (existingUser) {
+            throw new common_1.BadRequestException('O e-mail já está em uso.');
         }
-        const isMatch = await this.comparePassword(loginDto.password, user.password);
-        if (!isMatch) {
-            throw new common_1.UnauthorizedException('Credenciais inválidas.');
+        try {
+            const newUser = await this.userService.create(registrationData);
+            const payload = { email: newUser.email, sub: newUser.id };
+            const accessToken = this.jwtService.sign(payload);
+            const { passwordHash, ...safeUser } = newUser;
+            return {
+                user: safeUser,
+                accessToken,
+            };
         }
-        const payload = { id: user.id, email: user.email };
-        const accessToken = this.jwtService.sign(payload);
-        return {
-            accessToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-            },
-        };
+        catch (error) {
+            throw new common_1.InternalServerErrorException('Falha no registro do usuário.');
+        }
     }
-    async getProfile(userId) {
-        const user = await this.userService.findById(userId);
-        if (!user) {
-            throw new common_1.NotFoundException('Perfil de usuário não encontrado.');
-        }
-        return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            plan: {
-                id: user.currentPlan.id,
-                name: user.currentPlan.name,
-                price: user.currentPlan.price,
-            },
-        };
+    async validateTokenPayload(payload) {
+        return this.userService.findProfile(payload.sub);
     }
 };
 exports.AuthService = AuthService;

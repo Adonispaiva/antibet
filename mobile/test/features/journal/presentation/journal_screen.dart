@@ -134,9 +134,9 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         // ATUALIZADO: Navega para a tela de adicionar entrada
-        onPressed: _navigateToAddEntry, 
+        onPressed: _navigateToAddEntry,
+        backgroundColor: theme.colorScheme.primary, 
         child: const Icon(Icons.add),
-        backgroundColor: theme.colorScheme.primary,
       ),
     );
   }

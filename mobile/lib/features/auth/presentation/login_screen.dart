@@ -1,9 +1,6 @@
-import 'packagepackage:antibet/features/auth/presentation/register_screen.dart';
-import 'packagepackage:antibet/features/auth/providers/user_provider.dart';
-import 'packagepackage:antibet/utils/widgets/custom_button.dart';
-import 'packagepackage:antibet/utils/widgets/custom_textfield.dart';
-import 'packagepackage:flutter/material.dart';
-import 'packagepackage:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../home/presentation/home_screen.dart'; // Importação do Dashboard
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -13,9 +10,11 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -24,118 +23,137 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _submitLogin() {
-    // 1. Valida o formulário
-    if (_formKey.currentState?.validate() ?? false) {
-      // 2. Chama o provider para tentar o login
-      ref.read(userProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-          );
-    }
-  }
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  void _navigateToRegister() {
-    // Navega para a tela de registro
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+    setState(() => _isLoading = true);
+
+    // Simulação de delay de rede (Autenticação Mock)
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    // Feedback de Sucesso
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Bem-vindo de volta ao AntiBet!'),
+        backgroundColor: Colors.teal,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    // === NAVEGAÇÃO EFETIVA ===
+    // Substitui a tela de login pelo Dashboard (HomeScreen), impedindo o botão "voltar"
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // 3. Escuta o estado para side-effects (como SnackBar)
-    ref.listen<UserState>(userProvider, (previous, next) {
-      next.whenOrNull(
-        error: (message) {
-          // Em caso de erro, exibe um SnackBar
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        },
-      );
-    });
-
-    // 4. Assiste ao estado para mudanças de UI (loading)
-    final userState = ref.watch(userProvider);
-    final isLoading = userState is UserLoading;
-
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // TODO: Adicionar Logo/Título
-                Text(
-                  'AntiBet',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 48),
-
-                // Campo de Email
-                CustomTextField(
-                  key: const ValueKey('loginEmailField'),
-                  controller: _emailController,
-                  labelText: 'Email',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty || !value.contains('@')) {
-                      return 'Por favor, insira um email válido.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Campo de Senha
-                CustomTextField(
-                  key: const ValueKey('loginPasswordField'),
-                  controller: _passwordController,
-                  labelText: 'Senha',
-                  icon: Icons.lock_outline,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty || value.length < 6) {
-                      return 'A senha deve ter pelo menos 6 caracteres.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Botão de Login
-                CustomButton(
-                  key: const ValueKey('loginButton'),
-                  text: 'Entrar',
-                  isLoading: isLoading,
-                  onPressed: _submitLogin,
-                ),
-                const SizedBox(height: 24),
-
-                // Botão para criar conta
-                TextButton(
-                  onPressed: isLoading ? null : _navigateToRegister,
-                  child: Text(
-                    'Não tem uma conta? Crie uma',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Ícone / Logo
+                  Icon(
+                    Icons.shield_moon, // Ícone alusivo à proteção
+                    size: 80,
+                    color: theme.colorScheme.primary,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  
+                  Text(
+                    'AntiBet',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Seu escudo contra o vício.',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 48),
+
+                  // Campo de Email
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail',
+                      prefixIcon: Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Informe seu e-mail';
+                      if (!value.contains('@')) return 'E-mail inválido';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Campo de Senha
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return 'Informe sua senha';
+                      if (value.length < 6) return 'Mínimo 6 caracteres';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Botão de Login
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('ENTRAR'),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Link de Cadastro
+                  TextButton(
+                    onPressed: () {
+                      // Futuro: Navegar para RegisterScreen
+                    },
+                    child: const Text('Criar nova conta'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

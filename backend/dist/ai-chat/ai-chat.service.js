@@ -8,77 +8,82 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiChatService = void 0;
 const common_1 = require("@nestjs/common");
-const ai_gateway_service_1 = require("./ai-gateway.service");
-const ai_log_service_1 = require("../ai-log/ai-log.service");
-const plans_service_1 = require("../plans/plans.service");
-const user_service_1 = require("../user/user.service");
-const ia_models_config_1 = require("./ia-models.config");
+const typeorm_1 = require("@nestjs/typeorm");
+const typeorm_2 = require("typeorm");
+const axios_1 = require("axios");
+const app_config_service_1 = require("../../config/app-config.service");
+const chat_message_entity_1 = require("./entities/chat-message.entity");
 let AiChatService = class AiChatService {
-    constructor(aiGatewayService, aiLogService, plansService, userService) {
-        this.aiGatewayService = aiGatewayService;
-        this.aiLogService = aiLogService;
-        this.plansService = plansService;
-        this.userService = userService;
+    constructor(chatMessageRepository, configService) {
+        this.chatMessageRepository = chatMessageRepository;
+        this.configService = configService;
+        this.AI_MODEL = 'claude-sonnet-4-20250514';
+        this.API_URL = 'https://api.anthropic.com/v1/messages';
     }
-    async handleInteraction(userId, userPrompt) {
-        const plan = await this.plansService.findPlanByUserId(userId);
-        const dailyUsage = await this.aiLogService.getDailyUsage(userId);
-        if (dailyUsage >= plan.aiDailyLimit) {
-            throw new common_1.ForbiddenException(`Limite diário de ${plan.aiDailyLimit} interações atingido para o plano ${plan.name}.`);
-        }
-        const user = await this.userService.findById(userId);
-        if (!user) {
-            throw new common_1.NotFoundException('Usuário da interação não encontrado.');
-        }
-        const systemPrompt = this._buildSystemPrompt(user);
-        const modelName = ia_models_config_1.AiModelName.GPT_4_TURBO;
-        const modelConfig = this.aiGatewayService.getModel(modelName);
-        const aiResponse = await this.aiGatewayService.generateResponse(modelName, systemPrompt, userPrompt);
+    async getChatHistory(userId) {
+        return this.chatMessageRepository.find({
+            where: { userId: userId },
+            order: { createdAt: 'ASC' },
+            take: 20,
+        });
+    }
+    async processUserMessage(user, createChatMessageDto) {
+        await this.saveMessage(user, createChatMessageDto.content, chat_message_entity_1.MessageRole.USER);
+        const aiResponse = await this.callAIModel(user.id, createChatMessageDto.content);
+        const assistantMessage = await this.saveMessage(user, aiResponse.content, chat_message_entity_1.MessageRole.ASSISTANT, aiResponse.cost, aiResponse.metadata);
+        return assistantMessage;
+    }
+    async saveMessage(user, content, role, cost = 0, metadata = null) {
+        const newMessage = this.chatMessageRepository.create({
+            user: user,
+            userId: user.id,
+            content: content,
+            role: role,
+            cost: cost,
+            aiMetadata: metadata,
+        });
+        return this.chatMessageRepository.save(newMessage);
+    }
+    async callAIModel(userId, prompt) {
+        const history = await this.getChatHistory(userId);
+        const messages = history.map(msg => ({
+            role: msg.role === chat_message_entity_1.MessageRole.USER ? 'user' : 'assistant',
+            content: msg.content,
+        }));
+        messages.push({ role: 'user', content: prompt });
         try {
-            await this.aiLogService.createLog({
-                userId,
-                model: modelName,
-                cost: modelConfig.costPerInteraction,
-                prompt,
+            const response = await axios_1.default.post(this.API_URL, {
+                model: this.AI_MODEL,
+                messages: messages,
+                max_tokens: 1024,
+            }, {
+                headers: {
+                    'x-api-key': this.configService.get('ANTHROPIC_API_KEY'),
+                    'anthropic-version': '2023-06-01',
+                },
             });
+            const cost = 0.005;
+            const content = response.data.content[0].text;
+            const metadata = response.data.usage;
+            return { content, cost, metadata };
         }
-        catch (logError) {
-            console.error(`Falha ao registrar log de IA para userId ${userId}:`, logError);
+        catch (error) {
+            console.error('Erro na chamada da API de IA:', error.response?.data || error.message);
+            throw new common_1.BadRequestException('Falha ao obter resposta da IA. Tente novamente mais tarde.');
         }
-        return { response: aiResponse, model: modelName };
-    }
-    _buildSystemPrompt(user) {
-        const birthYear = user.birthYear;
-        const age = new Date().getFullYear() - birthYear;
-        const gender = user.gender === 'male' ? 'homem' : (user.gender === 'female' ? 'mulher' : 'pessoa');
-        const userName = user.avatarName;
-        return `
-      **Instrução de Contexto (System Prompt):**
-      Você é o "Assistente AntiBet", um terapeuta compassivo e especializado em vício em jogos de azar (Gambling Addiction).
-      
-      **Contexto do Usuário:**
-      - Nome (Avatar): ${userName}
-      - Idade Aproximada: ${age} anos (nascido em ${birthYear})
-      - Gênero: ${gender}
-      - Preocupação Principal (se houver): ${user.mainConcern || 'Não informada'}
-
-      **Diretrizes de Interação:**
-      1.  Seja sempre empático, solidário e não julgador.
-      2.  Use o nome "${userName}" ocasionalmente para criar uma conexão.
-      3.  Foque em técnicas de Terapia Cognitivo-Comportamental (TCC) para identificar gatilhos e reestruturar pensamentos.
-      4.  NUNCA dê conselhos financeiros. O foco é estritamente terapêutico e comportamental.
-      5.  Mantenha as respostas concisas e fáceis de entender.
-    `;
     }
 };
 exports.AiChatService = AiChatService;
 exports.AiChatService = AiChatService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [ai_gateway_service_1.AiGatewayService, typeof (_a = typeof ai_log_service_1.AiLogService !== "undefined" && ai_log_service_1.AiLogService) === "function" ? _a : Object, plans_service_1.PlansService,
-        user_service_1.UserService])
+    __param(0, (0, typeorm_1.InjectRepository)(chat_message_entity_1.ChatMessage)),
+    __metadata("design:paramtypes", [typeorm_2.Repository, typeof (_a = typeof app_config_service_1.AppConfigService !== "undefined" && app_config_service_1.AppConfigService) === "function" ? _a : Object])
 ], AiChatService);
 //# sourceMappingURL=ai-chat.service.js.map

@@ -1,5 +1,8 @@
+import { GoalType } from '../entities/goal.entity';
 export declare class CreateGoalDto {
     title: string;
     description?: string;
-    dueDate?: Date;
+    type?: GoalType;
+    targetValue: number;
+    targetDate?: string;
 }

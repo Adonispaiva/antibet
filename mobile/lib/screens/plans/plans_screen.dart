@@ -9,7 +9,7 @@ import 'package:antibet_mobile/controllers/plans/plans_controller.dart';
 import 'package:antibet_mobile/services/plans_service.dart'; // Importa o modelo Plan
 
 class PlansScreen extends StatelessWidget {
-  const PlansScreen({Key? key}) : super(key: key);
+  const PlansScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

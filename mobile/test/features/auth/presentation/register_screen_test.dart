@@ -123,7 +123,7 @@ void main() {
     await tester.pumpWidget(createWidgetUnderTest());
 
     // Act
-    fakeUserNotifier.setTestState(UserError(message: 'Cadastro falhou'));
+    fakeUserNotifier.setTestState(const UserError(message: 'Cadastro falhou'));
     await tester.pump();
 
     // Assert

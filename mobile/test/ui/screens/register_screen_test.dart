@@ -155,10 +155,10 @@ class RegisterScreen extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     key: const ValueKey('registerButton'),
+                    onPressed: isLoading ? null : () => _onRegisterPressed(context),
                     child: isLoading
                         ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
                         : const Text('CRIAR CONTA', style: TextStyle(fontSize: 18)),
-                    onPressed: isLoading ? null : () => _onRegisterPressed(context),
                   ),
                 ),
               ],

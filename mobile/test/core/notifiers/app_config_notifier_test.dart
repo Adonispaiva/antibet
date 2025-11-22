@@ -52,7 +52,7 @@ void main() {
       
       // Monitora se o notifyListeners é chamado
       final listener = MockFunction();
-      appConfigNotifier.addListener(listener);
+      appConfigNotifier.addListener(listener.call);
 
       // 2. Chama o método de alteração
       await appConfigNotifier.setDarkMode(newMode);
@@ -67,7 +67,7 @@ void main() {
       // Ouvintes notificados
       verify(listener()).called(1);
       
-      appConfigNotifier.removeListener(listener);
+      appConfigNotifier.removeListener(listener.call);
     });
 
     test('setCurrency should update state, call service, and notify listeners', () async {
@@ -77,7 +77,7 @@ void main() {
       when(mockAppConfigService.setCurrency(newCurrency)).thenAnswer((_) async => true);
       
       final listener = MockFunction();
-      appConfigNotifier.addListener(listener);
+      appConfigNotifier.addListener(listener.call);
 
       // 2. Chama o método de alteração
       await appConfigNotifier.setCurrency(newCurrency);
@@ -87,7 +87,7 @@ void main() {
       verify(mockAppConfigService.setCurrency(newCurrency)).called(1);
       verify(listener()).called(1);
       
-      appConfigNotifier.removeListener(listener);
+      appConfigNotifier.removeListener(listener.call);
     });
   });
 }

@@ -19,11 +19,11 @@ void main() {
   List<JournalEntryModel> mockEntries = [];
 
   // Dados de teste
-  final entryId1 = 'entry_test_1';
-  final initialAmount = 100.00;
-  final initialDesc = 'Aposta Inicial para Teste';
-  final editedAmount = 150.00;
-  final editedDesc = 'Aposta Editada com Sucesso';
+  const entryId1 = 'entry_test_1';
+  const initialAmount = 100.00;
+  const initialDesc = 'Aposta Inicial para Teste';
+  const editedAmount = 150.00;
+  const editedDesc = 'Aposta Editada com Sucesso';
 
   // Configuração antes de cada teste
   setUp(() {

@@ -83,7 +83,7 @@ void main() {
       final authNotifier = container.read(authProvider.notifier);
 
       // Act
-      await authNotifier.setLoading();
+      authNotifier.setLoading();
       await authNotifier.setToken(tToken); 
 
       // Assert

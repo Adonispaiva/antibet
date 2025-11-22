@@ -96,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // 2. Sexo (para personalização da IA)
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Sexo'),
-                value: _selectedGender,
+                initialValue: _selectedGender,
                 items: _genderOptions.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -128,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // 4. Há quanto tempo aposta
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Há quanto tempo aposta?'),
-                value: _selectedTimeBetting,
+                initialValue: _selectedTimeBetting,
                 items: _timeBettingOptions.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -147,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // 5. Nível de preocupação com apostas (1 a 5)
               DropdownButtonFormField<int>(
                 decoration: const InputDecoration(labelText: 'Nível de preocupação com apostas (1=Baixo, 5=Alto)'),
-                value: _selectedConcernLevel,
+                initialValue: _selectedConcernLevel,
                 items: _concernLevelOptions.map((int value) {
                   return DropdownMenuItem<int>(
                     value: value,

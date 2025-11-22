@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 // Importações das dependências para consumo
 import '../../notifiers/auth_notifier.dart'; 
-import '../../infra/services/auth_service.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});

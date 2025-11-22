@@ -11,9 +11,9 @@ void main() {
   AppConfigService appConfigService;
 
   // Define chaves de teste
-  const String _testKeyDarkMode = 'darkMode';
-  const String _testKeyCurrency = 'currency';
-  const String _defaultCurrency = 'BRL';
+  const String testKeyDarkMode = 'darkMode';
+  const String testKeyCurrency = 'currency';
+  const String defaultCurrency = 'BRL';
 
   setUp(() {
     mockSharedPreferences = MockSharedPreferences();
@@ -24,12 +24,12 @@ void main() {
     test('should save dark mode preference correctly', () async {
       const bool isDarkMode = true;
       // Configura o mock para que setBool retorne true (sucesso na escrita)
-      when(mockSharedPreferences.setBool(_testKeyDarkMode, isDarkMode)).thenAnswer((_) async => true);
+      when(mockSharedPreferences.setBool(testKeyDarkMode, isDarkMode)).thenAnswer((_) async => true);
 
       final result = await appConfigService.setDarkMode(isDarkMode);
 
       // Verifica se o método setBool foi chamado com os argumentos corretos
-      verify(mockSharedPreferences.setBool(_testKeyDarkMode, isDarkMode)).called(1);
+      verify(mockSharedPreferences.setBool(testKeyDarkMode, isDarkMode)).called(1);
       // Verifica se o serviço reportou sucesso
       expect(result, isTrue);
     });
@@ -37,19 +37,19 @@ void main() {
     test('should load dark mode preference correctly', () async {
       const bool savedDarkMode = false;
       // Configura o mock para que getBool retorne o valor simulado
-      when(mockSharedPreferences.getBool(_testKeyDarkMode)).thenReturn(savedDarkMode);
+      when(mockSharedPreferences.getBool(testKeyDarkMode)).thenReturn(savedDarkMode);
 
       final result = await appConfigService.getDarkMode();
 
       // Verifica se o método getBool foi chamado
-      verify(mockSharedPreferences.getBool(_testKeyDarkMode)).called(1);
+      verify(mockSharedPreferences.getBool(testKeyDarkMode)).called(1);
       // Verifica se o serviço retornou o valor esperado
       expect(result, equals(savedDarkMode));
     });
 
     test('should return false if dark mode preference is not set (null)', () async {
       // Configura o mock para que getBool retorne null (nenhuma preferência salva)
-      when(mockSharedPreferences.getBool(_testKeyDarkMode)).thenReturn(null);
+      when(mockSharedPreferences.getBool(testKeyDarkMode)).thenReturn(null);
 
       final result = await appConfigService.getDarkMode();
 
@@ -61,26 +61,26 @@ void main() {
       const String selectedCurrency = 'USD';
       
       // Save test
-      when(mockSharedPreferences.setString(_testKeyCurrency, selectedCurrency)).thenAnswer((_) async => true);
+      when(mockSharedPreferences.setString(testKeyCurrency, selectedCurrency)).thenAnswer((_) async => true);
       await appConfigService.setCurrency(selectedCurrency);
-      verify(mockSharedPreferences.setString(_testKeyCurrency, selectedCurrency)).called(1);
+      verify(mockSharedPreferences.setString(testKeyCurrency, selectedCurrency)).called(1);
 
       // Load test
-      when(mockSharedPreferences.getString(_testKeyCurrency)).thenReturn(selectedCurrency);
+      when(mockSharedPreferences.getString(testKeyCurrency)).thenReturn(selectedCurrency);
       final loadedCurrency = await appConfigService.getCurrency();
-      verify(mockSharedPreferences.getString(_testKeyCurrency)).called(1);
+      verify(mockSharedPreferences.getString(testKeyCurrency)).called(1);
       
       expect(loadedCurrency, equals(selectedCurrency));
     });
 
     test('should return default currency if currency preference is not set (null)', () async {
       // Configura o mock para retornar null
-      when(mockSharedPreferences.getString(_testKeyCurrency)).thenReturn(null);
+      when(mockSharedPreferences.getString(testKeyCurrency)).thenReturn(null);
 
       final loadedCurrency = await appConfigService.getCurrency();
 
       // O serviço deve retornar o valor padrão definido ('BRL')
-      expect(loadedCurrency, equals(_defaultCurrency));
+      expect(loadedCurrency, equals(defaultCurrency));
     });
   });
 }

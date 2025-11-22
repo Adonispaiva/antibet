@@ -18,7 +18,7 @@ class AppConfigView extends StatelessWidget {
         builder: (context, notifier, child) {
           
           // Função auxiliar para simplificar a chamada de atualização
-          void _updateConfig({
+          void updateConfig({
             bool? isDarkMode,
             bool? areNotificationsEnabled,
             String? languageCode,
@@ -49,7 +49,7 @@ class AppConfigView extends StatelessWidget {
                 secondary: const Icon(Icons.brightness_4),
                 value: notifier.isDarkMode,
                 onChanged: (newValue) {
-                  _updateConfig(isDarkMode: newValue);
+                  updateConfig(isDarkMode: newValue);
                 },
               ),
               
@@ -62,7 +62,7 @@ class AppConfigView extends StatelessWidget {
                 secondary: const Icon(Icons.notifications_active),
                 value: notifier.areNotificationsEnabled,
                 onChanged: (newValue) {
-                  _updateConfig(areNotificationsEnabled: newValue);
+                  updateConfig(areNotificationsEnabled: newValue);
                 },
               ),
               

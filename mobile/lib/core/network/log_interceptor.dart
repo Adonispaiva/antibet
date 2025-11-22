@@ -26,7 +26,7 @@ class SimpleLogInterceptor extends Interceptor {
       if (response.data != null) {
         // Limita o tamanho do log da resposta para não poluir o console
         final responseString = response.data.toString();
-        print('Data: ${responseString.length > 500 ? responseString.substring(0, 500) + '...' : responseString}');
+        print('Data: ${responseString.length > 500 ? '${responseString.substring(0, 500)}...' : responseString}');
       }
     }
     handler.next(response);

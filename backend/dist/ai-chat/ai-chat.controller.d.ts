@@ -1,7 +1,17 @@
 import { AiChatService } from './ai-chat.service';
-import { AiChatMessageDto } from './dto/ai-chat-message.dto';
+import { CreateChatMessageDto } from './dto/create-chat-message.dto';
+import { ChatMessage } from './entities/chat-message.entity';
+interface RequestWithUser extends Request {
+    user: {
+        userId: string;
+        email: string;
+        role: string;
+    };
+}
 export declare class AiChatController {
     private readonly aiChatService;
     constructor(aiChatService: AiChatService);
-    sendMessage(dto: AiChatMessageDto, req: any): Promise<any>;
+    sendMessage(req: RequestWithUser, createChatMessageDto: CreateChatMessageDto): Promise<ChatMessage>;
+    getHistory(req: RequestWithUser): Promise<ChatMessage[]>;
 }
+export {};

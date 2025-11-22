@@ -1,6 +1,5 @@
 // mobile/lib/features/user/models/user_model.dart
 
-import 'dart:convert';
 import 'package:flutter/foundation.dart'; // Para listEquals e debugPrint
 
 /// Modelo de dados que representa o perfil do usuário no Mobile.

@@ -1,4 +1,4 @@
-import 'package:antibet/features/journal/models/journal_entry_model.dart'; // NOVO: Importa o modelo de entrada
+// NOVO: Importa o modelo de entrada
 import 'package:antibet/features/journal/models/journal_model.dart';
 import 'package:antibet/features/journal/presentation/widgets/journal_entry_item.dart'; // NOVO: Importa o widget de item
 import 'package:antibet/features/journal/presentation/widgets/stat_card.dart';

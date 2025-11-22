@@ -8,12 +8,10 @@ class AiChatService {
   // Endpoint definido no Backend (AiChatController)
   static const String _aiChatEndpoint = '/ai-chat'; 
 
-  /**
-   * Envia a mensagem do usuário para a IA e processa a resposta.
-   * Lida com o erro 403 Forbidden (limite de uso).
-   * @param message A mensagem do usuário.
-   * @returns A resposta da IA (texto e uso de tokens).
-   */
+  /// Envia a mensagem do usuário para a IA e processa a resposta.
+  /// Lida com o erro 403 Forbidden (limite de uso).
+  /// @param message A mensagem do usuário.
+  /// @returns A resposta da IA (texto e uso de tokens).
   Future<Map<String, dynamic>> sendAiMessage(String message) async {
     try {
       final response = await _dio.post(
@@ -26,7 +24,7 @@ class AiChatService {
       // Assumindo que a resposta do Backend é no formato { text: '...', tokenUsage: X }
       return response.data;
       
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
         // Erro específico de limite de uso excedido (implementado no AiChatService do Backend)
         throw Exception('Limite de uso de IA excedido. Por favor, assine um plano.');
